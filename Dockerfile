@@ -82,6 +82,3 @@ RUN echo 'setwd("~/project")' >> /home/rstudio/.Rprofile
 
 # Reset DEBIAN_FRONTEND variable
 ENV DEBIAN_FRONTEND=
-
-# Start RStudio Server
-CMD ["/init"]
