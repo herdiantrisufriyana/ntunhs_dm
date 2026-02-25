@@ -1,0 +1,12 @@
+services:
+  rstudio:
+    build: .
+    image: ntunhs_dm:latest
+    container_name: ntunhs_dm
+    ports:
+      - "8787:8787"
+      - "8888:8888"
+    volumes:
+      - ./:/home/rstudio/project
+    environment:
+      - PASSWORD=1234
