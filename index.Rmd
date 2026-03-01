@@ -31,6 +31,7 @@ library(knitr)
 library(kableExtra)
 library(ggpubr)
 library(pbapply)
+library(readxl)
 ```
 
 ```{r Load functions, include=FALSE}
@@ -45,7 +46,25 @@ my_theme_set()
 sessionInfo()
 ```
 
-# Section
+# Data Preprocessing
+
+## Raw data
+
+```{r Read code book}
+code_book <- read_csv("inst/extdata/code_book.csv", show_col_types = FALSE)
+```
+
+```{r Column-type string}
+coltype_str <- paste0(code_book$col_type, collapse = "")
+```
+
+```{r Raw data}
+raw_data <- read_csv("inst/extdata/raw_data.csv", col_types = coltype_str)
+```
+
+```{r Raw data - read, echo=FALSE}
+raw_data
+```
 
 
 
