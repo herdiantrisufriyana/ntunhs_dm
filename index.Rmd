@@ -62,9 +62,6 @@ coltype_str <- paste0(code_book$col_type, collapse = "")
 raw_data <- read_csv("inst/extdata/raw_data.csv", col_types = coltype_str)
 ```
 
-```{r Raw data - read, echo=FALSE}
-raw_data
-```
 
 
 
