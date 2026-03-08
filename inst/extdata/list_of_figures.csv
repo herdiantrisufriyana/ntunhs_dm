@@ -1,2 +1,11 @@
 variable
-figure_variable_name
+outcome_set_plot
+qq_plots
+bar_charts
+sc_plots
+bx_plots
+vl_plots
+sb_charts
+cb_charts
+pc_hclust_pca_plot
+pc_hclust_plotter(hclust_fit)

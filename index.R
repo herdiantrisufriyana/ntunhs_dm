@@ -1,101 +1,70 @@
----
-title: "Project title"
-author:
-  - name: Author Name
-    affiliation:
-    - &aff1 Author Institution, City, Country.
-    email: email@website.com
-date: "2026-02-23"
-output: 
-  html_document:
-    toc: true
-    toc_depth: 3
-    toc_float:
-      collapsed: false
-      smooth_scroll: true
-vignette: >
-  %\VignetteIndexEntry{Project title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-# Programming environment
-
-```{r Set random seed, include=FALSE}
+## ----Set random seed, include=FALSE---------------------------------------------------------------------------
 seed <- 2026-02-23
-```
 
-```{r Load packages, include=FALSE}
+
+## ----Load packages, include=FALSE-----------------------------------------------------------------------------
 library(tidyverse)
 library(knitr)
 library(kableExtra)
 library(ggpubr)
 library(pbapply)
 library(readxl)
-```
 
-```{r Load functions, include=FALSE}
+
+## ----Load functions, include=FALSE----------------------------------------------------------------------------
 lapply(list.files("R/", full.names = TRUE), source)
-```
 
-```{r Set theme, include=FALSE}
+
+## ----Set theme, include=FALSE---------------------------------------------------------------------------------
 my_theme_set()
-```
 
-```{r Session information, echo=FALSE}
+
+## ----Session information, echo=FALSE--------------------------------------------------------------------------
 sessionInfo()
-```
 
-# Data Preprocessing
 
-## Raw data
-
-```{r Read code book, include=FALSE}
+## ----Read code book, include=FALSE----------------------------------------------------------------------------
 code_book <- read_csv("inst/extdata/code_book.csv", show_col_types = FALSE)
-```
 
-```{r Show code book, echo=FALSE}
+
+## ----Show code book, echo=FALSE-------------------------------------------------------------------------------
 show_table(code_book, "code_book", "Code book.")
-```
 
-```{r Column-type string, include=FALSE}
+
+## ----Column-type string, include=FALSE------------------------------------------------------------------------
 coltype_str <- paste0(code_book$col_type, collapse = "")
-```
 
-```{r Raw data, include=FALSE}
+
+## ----Raw data, include=FALSE----------------------------------------------------------------------------------
 raw_data <- read_csv("inst/extdata/raw_data.csv", col_types = coltype_str)
-```
 
-```{r State row and column numbers of raw data, echo=FALSE}
+
+## ----State row and column numbers of raw data, echo=FALSE-----------------------------------------------------
 cat("Rows: ", nrow(raw_data), "\n")
 cat("Columns: ", ncol(raw_data))
-```
 
-## Select variable of interest
 
-```{r Variable of interest, include=FALSE}
+## ----Variable of interest, include=FALSE----------------------------------------------------------------------
 voi <- "pe"
-```
 
-```{r Rename the variable as outcome and put after identifier, include=FALSE}
+
+## ----Rename the variable as outcome and put after identifier, include=FALSE-----------------------------------
 proc_data <-
   raw_data |>
   rename(outcome = voi) |>
   select(id, outcome, everything())
-```
 
-# Data partition
 
-```{r Determine partition sample size, include=FALSE}
+## ----Determine partition sample size, include=FALSE-----------------------------------------------------------
 whole_id <- raw_data$id
 whole_n <- length(whole_id)
 test_n <- ceiling(0.2 * whole_n)
 dev_n <- whole_n - test_n
 val_n <- ceiling(0.2 * dev_n)
 train_n <- dev_n - val_n
-```
 
-```{r Randomly select identifiers for each partition, include=FALSE}
+
+## ----Randomly select identifiers for each partition, include=FALSE--------------------------------------------
 set.seed(seed)
 test_id <- sample(whole_id, test_n)
 dev_id <- setdiff(whole_id, test_id)
@@ -103,24 +72,24 @@ dev_id <- setdiff(whole_id, test_id)
 set.seed(seed)
 val_id <- sample(dev_id, val_n)
 train_id <- setdiff(dev_id, val_id)
-```
 
-```{r Create set data, include=FALSE}
+
+## ----Create set data, include=FALSE---------------------------------------------------------------------------
 set_data <-
   data.frame(id = train_id, set = "training") |>
   rbind(data.frame(id = val_id, set = "validation")) |>
   rbind(data.frame(id = test_id, set = "testing")) |>
   mutate(set = factor(set, c("training", "validation", "testing")))
-```
 
-```{r Join set data to outcome data, include=FALSE}
+
+## ----Join set data to outcome data, include=FALSE-------------------------------------------------------------
 outcome_set_data <-
   proc_data |>
   select(id, outcome) |>
   left_join(set_data, by = "id")
-```
 
-```{r Summarize outcome class per set, include=FALSE}
+
+## ----Summarize outcome class per set, include=FALSE-----------------------------------------------------------
 if(class(outcome_set_data$outcome) == "numeric"){
   outcome_set_summary <-
     outcome_set_data |>
@@ -142,42 +111,36 @@ if(class(outcome_set_data$outcome) == "numeric"){
     ggplot(aes(set, n, fill = outcome)) +
     geom_col()
 }
-```
 
-```{r Show summary per set, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4}
+
+## ----Show summary per set, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4---------------------------------
 outcome_set_plot
-```
 
-```{r Caption outcome class summary per set, echo=FALSE}
+
+## ----Caption outcome class summary per set, echo=FALSE--------------------------------------------------------
 show_figure_legend("outcome_set_plot", "Data partition.")
-```
 
-```{r Split samples using the identifiers for each partition, include=FALSE}
+
+## ----Split samples using the identifiers for each partition, include=FALSE------------------------------------
 dev_data <- slice(proc_data, match(dev_id, id))
 train_data <- slice(proc_data, match(train_id, id))
 val_data <- slice(proc_data, match(val_id, id))
 test_data <- slice(proc_data, match(test_id, id))
-```
 
-# Data vizualization
 
-```{r Select numerical variables, include=FALSE}
+## ----Select numerical variables, include=FALSE----------------------------------------------------------------
 num_data <- select_if(train_data, is.numeric)
-```
 
-```{r Select categorical variables, include=FALSE}
+
+## ----Select categorical variables, include=FALSE--------------------------------------------------------------
 cat_data <- select_if(train_data, is.factor)
-```
 
-## One-variable visualization
 
-### QQ plot
-
-```{r State number of QQ plots, echo=FALSE}
+## ----State number of QQ plots, echo=FALSE---------------------------------------------------------------------
 cat("Number of QQ plots (= # of numeric variables): ", ncol(num_data))
-```
 
-```{r Create custom function for QQ plot}
+
+## ----Create custom function for QQ plot-----------------------------------------------------------------------
 qq_plotter <- function(variable, data){
   variable_lab <-
     case_when(
@@ -196,9 +159,9 @@ qq_plotter <- function(variable, data){
     ylab(variable_lab) +
     theme(axis.title = element_text(size = 10))
 }
-```
 
-```{r Create QQ plots, include=FALSE}
+
+## ----Create QQ plots, include=FALSE---------------------------------------------------------------------------
 if(ncol(num_data) > 1){
   qq_plots <- pblapply(colnames(num_data), qq_plotter, num_data)
   
@@ -206,27 +169,25 @@ if(ncol(num_data) > 1){
   qq_nrow <- ceiling(length(qq_plots) / qq_ncol)
   qq_plots <- ggarrange(plotlist = qq_plots, ncol = qq_ncol, nrow = qq_nrow)
 }
-```
 
-```{r Show QQ plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4}
+
+## ----Show QQ plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4---------------------------------------
 if(ncol(num_data) > 1){
   qq_plots
 }
-```
 
-```{r Caption QQ plots, echo=FALSE}
+
+## ----Caption QQ plots, echo=FALSE-----------------------------------------------------------------------------
 if(ncol(num_data) > 1){
   show_figure_legend("qq_plots", "QQ plots.")
 }
-```
 
-### Bar chart
 
-```{r State number of bar charts, echo=FALSE}
+## ----State number of bar charts, echo=FALSE-------------------------------------------------------------------
 cat("Number of bar charts (= # of categorical variables): ", ncol(cat_data))
-```
 
-```{r Create custom function for bar chart}
+
+## ----Create custom function for bar chart---------------------------------------------------------------------
 bar_chart_plotter <- function(variable, data){
   data |>
     `colnames<-`(str_replace_all(colnames(data), variable, "variable")) |>
@@ -239,9 +200,9 @@ bar_chart_plotter <- function(variable, data){
     ylab("Proportion (%)") +
     theme(axis.title = element_text(size = 10))
 }
-```
 
-```{r Create bar charts, include=FALSE}
+
+## ----Create bar charts, include=FALSE-------------------------------------------------------------------------
 if(ncol(cat_data) > 1){
   bar_charts <- pblapply(colnames(cat_data), bar_chart_plotter, cat_data)
   
@@ -249,34 +210,30 @@ if(ncol(cat_data) > 1){
   bc_nrow <- ceiling(length(bar_charts) / bc_ncol)
   bar_charts <- ggarrange(plotlist = bar_charts, ncol = bc_ncol, nrow = bc_nrow)
 }
-```
 
-```{r Show bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4}
+
+## ----Show bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4--------------------------------------
 if(ncol(cat_data) > 1){
   bar_charts
 }
-```
 
-```{r Caption bar charts, echo=FALSE}
+
+## ----Caption bar charts, echo=FALSE---------------------------------------------------------------------------
 if(ncol(cat_data) > 1){
   show_figure_legend("bar_charts", "Bar charts.")
 }
-```
 
-## Two-to-three-variable visualization
 
-### Scatter plot
-
-```{r Select num vars for these hands-on, include=FALSE}
+## ----Select num vars for these hands-on, include=FALSE--------------------------------------------------------
 sel_num_var <- c("age", "bmi", "uta_ri", "uta_pi", "uta_psv", "sflt1", "plgf")
-```
 
-```{r Show selected num vars for these hands-on, echo=FALSE}
+
+## ----Show selected num vars for these hands-on, echo=FALSE----------------------------------------------------
 cat("Only these numeric variables are visualized:\n")
 sel_num_var
-```
 
-```{r State number of scatter plots, echo=FALSE}
+
+## ----State number of scatter plots, echo=FALSE----------------------------------------------------------------
 if(ncol(num_data) >= 2){
   combn_num_var <- combn(sel_num_var, 2, simplify = FALSE)
   combn_n <- length(combn_num_var)
@@ -285,9 +242,9 @@ if(ncol(num_data) >= 2){
 }
 
 cat("Number of scatter plots (= # of possible pairs of num. var.): ", combn_n)
-```
 
-```{r Create custom function for scatter plot}
+
+## ----Create custom function for scatter plot------------------------------------------------------------------
 scatter_plotter <- function(pair, data, third = NULL){
   if(is.null(third)){
     sc_plot <-
@@ -318,9 +275,9 @@ scatter_plotter <- function(pair, data, third = NULL){
   
   return(sc_plot)
 }
-```
 
-```{r Create scatter plots, include=FALSE}
+
+## ----Create scatter plots, include=FALSE----------------------------------------------------------------------
 if(ncol(num_data) >= 2){
   sc_plots <- pblapply(combn_num_var, scatter_plotter, num_data)
   
@@ -328,21 +285,21 @@ if(ncol(num_data) >= 2){
   sc_nrow <- ceiling(length(sc_plots) / sc_ncol)
   sc_plots <- ggarrange(plotlist = sc_plots, ncol = sc_ncol, nrow = sc_nrow)
 }
-```
 
-```{r Show scatter plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4}
+
+## ----Show scatter plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4----------------------------------
 if(ncol(num_data) >= 2){
   sc_plots
 }
-```
 
-```{r Caption scatter plots, echo=FALSE}
+
+## ----Caption scatter plots, echo=FALSE------------------------------------------------------------------------
 if(ncol(num_data) >= 2){
   show_figure_legend("sc_plots", "Scatter plots.")
 }
-```
 
-```{r Create scp with color, include=FALSE}
+
+## ----Create scp with color, include=FALSE---------------------------------------------------------------------
 if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
   v3 <- colnames(cat_data)[1]
   v3_data <- select(cat_data, v3)
@@ -353,32 +310,30 @@ if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
   scc_nrow <- ceiling(length(scc_plots) / scc_ncol)
   scc_plots <- ggarrange(plotlist = scc_plots, ncol = scc_ncol, nrow = scc_nrow)
 }
-```
 
-```{r Show scp with color, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4}
+
+## ----Show scp with color, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4---------------------------------
 if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
   scc_plots
 }
-```
 
-```{r Caption scp with color, echo=FALSE}
+
+## ----Caption scp with color, echo=FALSE-----------------------------------------------------------------------
 if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
   show_figure_legend("sc_plots", "Scatter plots.")
 }
-```
 
-### Box and violin plots
 
-```{r Select cat vars for these hands-on, include=FALSE}
+## ----Select cat vars for these hands-on, include=FALSE--------------------------------------------------------
 sel_cat_var <- c("outcome", "iugr")
-```
 
-```{r Show selected cat vars for these hands-on, echo=FALSE}
+
+## ----Show selected cat vars for these hands-on, echo=FALSE----------------------------------------------------
 cat("Only these categorical variables are visualized:\n")
 sel_cat_var
-```
 
-```{r State number of box plots, echo=FALSE}
+
+## ----State number of box plots, echo=FALSE--------------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   combn_num_cat_var <-
     expand.grid(V1 = sel_cat_var, V2 = sel_num_var) |>
@@ -393,9 +348,9 @@ if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
 }
 
 cat("Number of box plots (= # of possible pairs of num-cat. var.): ", combn_nc)
-```
 
-```{r Create custom function for box plot}
+
+## ----Create custom function for box plot----------------------------------------------------------------------
 box_plotter <- function(pair, data){
   bx_plot <-
     data |>
@@ -417,9 +372,9 @@ box_plotter <- function(pair, data){
   
   return(bx_plot)
 }
-```
 
-```{r Create box plots, include=FALSE}
+
+## ----Create box plots, include=FALSE--------------------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   bx_plots <- pblapply(combn_num_cat_var, box_plotter, train_data)
   
@@ -427,21 +382,21 @@ if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   bx_nrow <- ceiling(length(bx_plots) / bx_ncol)
   bx_plots <- ggarrange(plotlist = bx_plots, ncol = bx_ncol, nrow = bx_nrow)
 }
-```
 
-```{r Show box plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4}
+
+## ----Show box plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4--------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   bx_plots
 }
-```
 
-```{r Caption box plots, echo=FALSE}
+
+## ----Caption box plots, echo=FALSE----------------------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   show_figure_legend("bx_plots", "Box plots.")
 }
-```
 
-```{r Create custom function for violin plot}
+
+## ----Create custom function for violin plot-------------------------------------------------------------------
 violin_plotter <- function(pair, data){
   vl_plot <-
     data |>
@@ -463,9 +418,9 @@ violin_plotter <- function(pair, data){
   
   return(vl_plot)
 }
-```
 
-```{r Create violin plots, include=FALSE}
+
+## ----Create violin plots, include=FALSE-----------------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   vl_plots <- pblapply(combn_num_cat_var, violin_plotter, train_data)
   
@@ -473,23 +428,21 @@ if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   vl_nrow <- ceiling(length(vl_plots) / vl_ncol)
   vl_plots <- ggarrange(plotlist = vl_plots, ncol = vl_ncol, nrow = vl_nrow)
 }
-```
 
-```{r Show violin plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4}
+
+## ----Show violin plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4-----------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   vl_plots
 }
-```
 
-```{r Caption violin plots, echo=FALSE}
+
+## ----Caption violin plots, echo=FALSE-------------------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   show_figure_legend("vl_plots", "Violin plots.")
 }
-```
 
-### Stacked bar chart
 
-```{r State number of stacked bar charts, echo=FALSE}
+## ----State number of stacked bar charts, echo=FALSE-----------------------------------------------------------
 if(ncol(cat_data) >= 2){
   combn_cat_var <- combn(sel_cat_var, 2, simplify = FALSE)
   combn_c <- length(combn_cat_var)
@@ -498,9 +451,9 @@ if(ncol(cat_data) >= 2){
 }
 
 cat("Number of stacked bar charts (= # of poss. pairs of cat. var.): ", combn_c)
-```
 
-```{r Create custom function for stacked bar chart}
+
+## ----Create custom function for stacked bar chart-------------------------------------------------------------
 sb_chart_plotter <- function(pair, data, mode = "proportion"){
   
   data <-
@@ -540,9 +493,9 @@ sb_chart_plotter <- function(pair, data, mode = "proportion"){
       , legend.title = element_text(size = 10)
     )
 }
-```
 
-```{r Create s-bar charts, include=FALSE}
+
+## ----Create s-bar charts, include=FALSE-----------------------------------------------------------------------
 if(ncol(cat_data) >= 2){
   sb_charts <- pblapply(combn_cat_var, sb_chart_plotter, cat_data)
   
@@ -550,21 +503,21 @@ if(ncol(cat_data) >= 2){
   sb_nrow <- ceiling(length(sb_charts) / sb_ncol)
   sb_charts <- ggarrange(plotlist = sb_charts, ncol = sb_ncol, nrow = sb_nrow)
 }
-```
 
-```{r Show s-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4}
+
+## ----Show s-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4------------------------------------
 if(ncol(cat_data) >= 2){
   sb_charts
 }
-```
 
-```{r Caption s-bar charts, echo=FALSE}
+
+## ----Caption s-bar charts, echo=FALSE-------------------------------------------------------------------------
 if(ncol(cat_data) >= 2){
   show_figure_legend("sb_charts", "Stacked bar charts.")
 }
-```
 
-```{r Create sc-bar charts, include=FALSE}
+
+## ----Create sc-bar charts, include=FALSE----------------------------------------------------------------------
 if(ncol(cat_data) >= 2){
   cb_charts <- pblapply(combn_cat_var, sb_chart_plotter, cat_data, "count")
   
@@ -572,29 +525,27 @@ if(ncol(cat_data) >= 2){
   cb_nrow <- ceiling(length(cb_charts) / cb_ncol)
   cb_charts <- ggarrange(plotlist = cb_charts, ncol = cb_ncol, nrow = cb_nrow)
 }
-```
 
-```{r Show sc-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4}
+
+## ----Show sc-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4-----------------------------------
 if(ncol(cat_data) >= 2){
   cb_charts
 }
-```
 
-```{r Caption c-bar charts, echo=FALSE}
+
+## ----Caption c-bar charts, echo=FALSE-------------------------------------------------------------------------
 if(ncol(cat_data) >= 2){
   show_figure_legend("cb_charts", "Stacked bar charts by count.")
 }
-```
 
-## More-than-three-variable visualization
 
-```{r Create custom function to numerize categorical variables, include=FALSE}
+## ----Create custom function to numerize categorical variables, include=FALSE----------------------------------
 numerize_cat_var <- function(x){
  as.numeric(x) - 1 
 }
-```
 
-```{r Prepare cluster data, include=FALSE}
+
+## ----Prepare cluster data, include=FALSE----------------------------------------------------------------------
 cluster_data <- train_data
 
 if(ncol(cat_data) > 0){
@@ -607,11 +558,9 @@ cluster_data <-
   cluster_data |>
   column_to_rownames(var = "id") |>
   na.omit() # Remove rows with NA in any columns
-```
 
-## Sample clustering
 
-```{r Prepare PC1 and PC2 for sample clustering, include=FALSE}
+## ----Prepare PC1 and PC2 for sample clustering, include=FALSE-------------------------------------------------
 pca_fit <-
   cluster_data |>
   prcomp(scale. = TRUE) # Data standardization
@@ -620,21 +569,21 @@ pc12_data <-
   pca_fit$x |>
   as.data.frame() |>
   select(PC1, PC2)
-```
 
-```{r Use complete linkage for hierarchical clustering, include=FALSE}
+
+## ----Use complete linkage for hierarchical clustering, include=FALSE------------------------------------------
 hclust_fit <-
   pc12_data |>
   dist() |>
   hclust()
-```
 
-```{r Identify cluster labels, include=FALSE}
+
+## ----Identify cluster labels, include=FALSE-------------------------------------------------------------------
 # Modify k accordingly
 h_cluster <- cutree(hclust_fit, k = 3)
-```
 
-```{r Create custom function for PC-kmean plot}
+
+## ----Create custom function for PC-kmean plot-----------------------------------------------------------------
 pc_hclust_pca_plotter <- function(pc_data, h_cluster, pca_fit){
   
   var_exp <-
@@ -650,21 +599,21 @@ pc_hclust_pca_plotter <- function(pc_data, h_cluster, pca_fit){
       , color = "Hierarchical cluster"
     )
 }
-```
 
-```{r Create PC-HC plot, include=FALSE}
+
+## ----Create PC-HC plot, include=FALSE-------------------------------------------------------------------------
 pc_hclust_pca_plot <- pc_hclust_pca_plotter(pc12_data, h_cluster, pca_fit)
-```
 
-```{r Show PC-HC plot, echo=FALSE, fig.height=108/25.4, fig.width=190/25.4}
+
+## ----Show PC-HC plot, echo=FALSE, fig.height=108/25.4, fig.width=190/25.4-------------------------------------
 pc_hclust_pca_plot
-```
 
-```{r Caption PC-kmean plot, echo=FALSE}
+
+## ----Caption PC-kmean plot, echo=FALSE------------------------------------------------------------------------
 show_figure_legend("pc_hclust_pca_plot", "PC-HC plot.")
-```
 
-```{r Create custom function for PC-hclust plot}
+
+## ----Create custom function for PC-hclust plot----------------------------------------------------------------
 pc_hclust_plotter <- function(hclust_fit, h_cluster){
   h_cluster <- factor(h_cluster)
   cols <- as.integer(h_cluster)
@@ -689,14 +638,12 @@ pc_hclust_plotter <- function(hclust_fit, h_cluster){
     , col = cols[order]
   )
 }
-```
 
-```{r Show PC-hclust plot, echo=FALSE, fig.height=190/25.4, fig.width=190/25.4}
+
+## ----Show PC-hclust plot, echo=FALSE, fig.height=190/25.4, fig.width=190/25.4---------------------------------
 pc_hclust_plotter(hclust_fit, h_cluster)
-```
 
-```{r Caption PC-hclust plot, echo=FALSE}
+
+## ----Caption PC-hclust plot, echo=FALSE-----------------------------------------------------------------------
 show_figure_legend("pc_hclust_plotter(hclust_fit)", "PC-hclust plot.")
-```
-
 
