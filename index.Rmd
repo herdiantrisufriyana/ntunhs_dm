@@ -87,7 +87,7 @@ proc_data <-
 # Data partition
 
 ```{r Determine partition sample size, include=FALSE}
-whole_id <- raw_data$id
+whole_id <- proc_data$id
 whole_n <- length(whole_id)
 test_n <- ceiling(0.2 * whole_n)
 dev_n <- whole_n - test_n
@@ -179,21 +179,13 @@ cat("Number of QQ plots (= # of numeric variables): ", ncol(num_data))
 
 ```{r Create custom function for QQ plot}
 qq_plotter <- function(variable, data){
-  variable_lab <-
-    case_when(
-       variable %in% skew_r_var ~ paste0("sqrt(", variable, ")")
-       , variable %in% skew_l_var ~ paste0(variable, "^2")
-       , variable %in% tail_heavy_var ~ paste0("log(", variable, ")")
-       , TRUE ~ variable
-    )
-  
   data |>
     `colnames<-`(str_replace_all(colnames(data), variable, "variable")) |>
     ggplot(aes(sample = variable)) +
   	geom_qq() +
   	geom_qq_line() +
     xlab("Normal +/- SD") +
-    ylab(variable_lab) +
+    ylab(variable) +
     theme(axis.title = element_text(size = 10))
 }
 ```
@@ -509,10 +501,6 @@ sb_chart_plotter <- function(pair, data, mode = "proportion"){
     `colnames<-`(c("V1", "V2")) |>
     group_by(V1, V2) |>
     summarize(n = n(), .groups = "drop")
-  
-  if(mode == "proportion"){
-    
-  }
   
   if(mode == "count"){
     data <-
