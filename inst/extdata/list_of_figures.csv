@@ -9,3 +9,9 @@ sb_charts
 cb_charts
 pc_hclust_pca_plot
 pc_hclust_plotter(hclust_fit)
+scree_plotter(pca_fit_var)
+pc_score_plotter(pca_fit_var)
+pc_loading_plotter(pca_fit_var)
+k_selection_plot
+pc_hclust_plot
+cl_score_plot

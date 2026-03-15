@@ -1,62 +1,63 @@
-## ----Set random seed, include=FALSE---------------------------------------------------------------------------
+## ----Set random seed, include=FALSE--------------------------------------------------------------
 seed <- 2026-02-23
 
 
-## ----Load packages, include=FALSE-----------------------------------------------------------------------------
+## ----Load packages, include=FALSE----------------------------------------------------------------
 library(tidyverse)
 library(knitr)
 library(kableExtra)
 library(ggpubr)
 library(pbapply)
 library(readxl)
+library(cluster)
 
 
-## ----Load functions, include=FALSE----------------------------------------------------------------------------
+## ----Load functions, include=FALSE---------------------------------------------------------------
 lapply(list.files("R/", full.names = TRUE), source)
 
 
-## ----Set theme, include=FALSE---------------------------------------------------------------------------------
+## ----Set theme, include=FALSE--------------------------------------------------------------------
 my_theme_set()
 
 
-## ----Session information, echo=FALSE--------------------------------------------------------------------------
+## ----Session information, echo=FALSE-------------------------------------------------------------
 sessionInfo()
 
 
-## ----Read code book, include=FALSE----------------------------------------------------------------------------
+## ----Read code book, include=FALSE---------------------------------------------------------------
 code_book <- read_csv("inst/extdata/code_book.csv", show_col_types = FALSE)
 
 
-## ----Show code book, echo=FALSE-------------------------------------------------------------------------------
+## ----Show code book, echo=FALSE------------------------------------------------------------------
 show_table(code_book, "code_book", "Code book.")
 
 
-## ----Column-type string, include=FALSE------------------------------------------------------------------------
+## ----Column-type string, include=FALSE-----------------------------------------------------------
 coltype_str <- paste0(code_book$col_type, collapse = "")
 
 
-## ----Raw data, include=FALSE----------------------------------------------------------------------------------
+## ----Raw data, include=FALSE---------------------------------------------------------------------
 raw_data <- read_csv("inst/extdata/raw_data.csv", col_types = coltype_str)
 
 
-## ----State row and column numbers of raw data, echo=FALSE-----------------------------------------------------
+## ----State row and column numbers of raw data, echo=FALSE----------------------------------------
 cat("Rows: ", nrow(raw_data), "\n")
 cat("Columns: ", ncol(raw_data))
 
 
-## ----Variable of interest, include=FALSE----------------------------------------------------------------------
+## ----Variable of interest, include=FALSE---------------------------------------------------------
 voi <- "pe"
 
 
-## ----Rename the variable as outcome and put after identifier, include=FALSE-----------------------------------
+## ----Rename the variable as outcome and put after identifier, include=FALSE----------------------
 proc_data <-
   raw_data |>
   rename(outcome = voi) |>
   select(id, outcome, everything())
 
 
-## ----Determine partition sample size, include=FALSE-----------------------------------------------------------
-whole_id <- raw_data$id
+## ----Determine partition sample size, include=FALSE----------------------------------------------
+whole_id <- proc_data$id
 whole_n <- length(whole_id)
 test_n <- ceiling(0.2 * whole_n)
 dev_n <- whole_n - test_n
@@ -64,7 +65,7 @@ val_n <- ceiling(0.2 * dev_n)
 train_n <- dev_n - val_n
 
 
-## ----Randomly select identifiers for each partition, include=FALSE--------------------------------------------
+## ----Randomly select identifiers for each partition, include=FALSE-------------------------------
 set.seed(seed)
 test_id <- sample(whole_id, test_n)
 dev_id <- setdiff(whole_id, test_id)
@@ -74,7 +75,7 @@ val_id <- sample(dev_id, val_n)
 train_id <- setdiff(dev_id, val_id)
 
 
-## ----Create set data, include=FALSE---------------------------------------------------------------------------
+## ----Create set data, include=FALSE--------------------------------------------------------------
 set_data <-
   data.frame(id = train_id, set = "training") |>
   rbind(data.frame(id = val_id, set = "validation")) |>
@@ -82,14 +83,14 @@ set_data <-
   mutate(set = factor(set, c("training", "validation", "testing")))
 
 
-## ----Join set data to outcome data, include=FALSE-------------------------------------------------------------
+## ----Join set data to outcome data, include=FALSE------------------------------------------------
 outcome_set_data <-
   proc_data |>
   select(id, outcome) |>
   left_join(set_data, by = "id")
 
 
-## ----Summarize outcome class per set, include=FALSE-----------------------------------------------------------
+## ----Summarize outcome class per set, include=FALSE----------------------------------------------
 if(class(outcome_set_data$outcome) == "numeric"){
   outcome_set_summary <-
     outcome_set_data |>
@@ -113,55 +114,47 @@ if(class(outcome_set_data$outcome) == "numeric"){
 }
 
 
-## ----Show summary per set, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4---------------------------------
+## ----Show summary per set, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4--------------------
 outcome_set_plot
 
 
-## ----Caption outcome class summary per set, echo=FALSE--------------------------------------------------------
+## ----Caption outcome class summary per set, echo=FALSE-------------------------------------------
 show_figure_legend("outcome_set_plot", "Data partition.")
 
 
-## ----Split samples using the identifiers for each partition, include=FALSE------------------------------------
+## ----Split samples using the identifiers for each partition, include=FALSE-----------------------
 dev_data <- slice(proc_data, match(dev_id, id))
 train_data <- slice(proc_data, match(train_id, id))
 val_data <- slice(proc_data, match(val_id, id))
 test_data <- slice(proc_data, match(test_id, id))
 
 
-## ----Select numerical variables, include=FALSE----------------------------------------------------------------
+## ----Select numerical variables, include=FALSE---------------------------------------------------
 num_data <- select_if(train_data, is.numeric)
 
 
-## ----Select categorical variables, include=FALSE--------------------------------------------------------------
+## ----Select categorical variables, include=FALSE-------------------------------------------------
 cat_data <- select_if(train_data, is.factor)
 
 
-## ----State number of QQ plots, echo=FALSE---------------------------------------------------------------------
+## ----State number of QQ plots, echo=FALSE--------------------------------------------------------
 cat("Number of QQ plots (= # of numeric variables): ", ncol(num_data))
 
 
-## ----Create custom function for QQ plot-----------------------------------------------------------------------
+## ----Create custom function for QQ plot----------------------------------------------------------
 qq_plotter <- function(variable, data){
-  variable_lab <-
-    case_when(
-       variable %in% skew_r_var ~ paste0("sqrt(", variable, ")")
-       , variable %in% skew_l_var ~ paste0(variable, "^2")
-       , variable %in% tail_heavy_var ~ paste0("log(", variable, ")")
-       , TRUE ~ variable
-    )
-  
   data |>
     `colnames<-`(str_replace_all(colnames(data), variable, "variable")) |>
     ggplot(aes(sample = variable)) +
   	geom_qq() +
   	geom_qq_line() +
     xlab("Normal +/- SD") +
-    ylab(variable_lab) +
+    ylab(variable) +
     theme(axis.title = element_text(size = 10))
 }
 
 
-## ----Create QQ plots, include=FALSE---------------------------------------------------------------------------
+## ----Create QQ plots, include=FALSE--------------------------------------------------------------
 if(ncol(num_data) > 1){
   qq_plots <- pblapply(colnames(num_data), qq_plotter, num_data)
   
@@ -171,23 +164,23 @@ if(ncol(num_data) > 1){
 }
 
 
-## ----Show QQ plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4---------------------------------------
+## ----Show QQ plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4--------------------------
 if(ncol(num_data) > 1){
   qq_plots
 }
 
 
-## ----Caption QQ plots, echo=FALSE-----------------------------------------------------------------------------
+## ----Caption QQ plots, echo=FALSE----------------------------------------------------------------
 if(ncol(num_data) > 1){
   show_figure_legend("qq_plots", "QQ plots.")
 }
 
 
-## ----State number of bar charts, echo=FALSE-------------------------------------------------------------------
+## ----State number of bar charts, echo=FALSE------------------------------------------------------
 cat("Number of bar charts (= # of categorical variables): ", ncol(cat_data))
 
 
-## ----Create custom function for bar chart---------------------------------------------------------------------
+## ----Create custom function for bar chart--------------------------------------------------------
 bar_chart_plotter <- function(variable, data){
   data |>
     `colnames<-`(str_replace_all(colnames(data), variable, "variable")) |>
@@ -202,7 +195,7 @@ bar_chart_plotter <- function(variable, data){
 }
 
 
-## ----Create bar charts, include=FALSE-------------------------------------------------------------------------
+## ----Create bar charts, include=FALSE------------------------------------------------------------
 if(ncol(cat_data) > 1){
   bar_charts <- pblapply(colnames(cat_data), bar_chart_plotter, cat_data)
   
@@ -212,28 +205,28 @@ if(ncol(cat_data) > 1){
 }
 
 
-## ----Show bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4--------------------------------------
+## ----Show bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4-------------------------
 if(ncol(cat_data) > 1){
   bar_charts
 }
 
 
-## ----Caption bar charts, echo=FALSE---------------------------------------------------------------------------
+## ----Caption bar charts, echo=FALSE--------------------------------------------------------------
 if(ncol(cat_data) > 1){
   show_figure_legend("bar_charts", "Bar charts.")
 }
 
 
-## ----Select num vars for these hands-on, include=FALSE--------------------------------------------------------
+## ----Select num vars for these hands-on, include=FALSE-------------------------------------------
 sel_num_var <- c("age", "bmi", "uta_ri", "uta_pi", "uta_psv", "sflt1", "plgf")
 
 
-## ----Show selected num vars for these hands-on, echo=FALSE----------------------------------------------------
+## ----Show selected num vars for these hands-on, echo=FALSE---------------------------------------
 cat("Only these numeric variables are visualized:\n")
 sel_num_var
 
 
-## ----State number of scatter plots, echo=FALSE----------------------------------------------------------------
+## ----State number of scatter plots, echo=FALSE---------------------------------------------------
 if(ncol(num_data) >= 2){
   combn_num_var <- combn(sel_num_var, 2, simplify = FALSE)
   combn_n <- length(combn_num_var)
@@ -244,7 +237,7 @@ if(ncol(num_data) >= 2){
 cat("Number of scatter plots (= # of possible pairs of num. var.): ", combn_n)
 
 
-## ----Create custom function for scatter plot------------------------------------------------------------------
+## ----Create custom function for scatter plot-----------------------------------------------------
 scatter_plotter <- function(pair, data, third = NULL){
   if(is.null(third)){
     sc_plot <-
@@ -277,7 +270,7 @@ scatter_plotter <- function(pair, data, third = NULL){
 }
 
 
-## ----Create scatter plots, include=FALSE----------------------------------------------------------------------
+## ----Create scatter plots, include=FALSE---------------------------------------------------------
 if(ncol(num_data) >= 2){
   sc_plots <- pblapply(combn_num_var, scatter_plotter, num_data)
   
@@ -287,19 +280,19 @@ if(ncol(num_data) >= 2){
 }
 
 
-## ----Show scatter plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4----------------------------------
+## ----Show scatter plots, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4---------------------
 if(ncol(num_data) >= 2){
   sc_plots
 }
 
 
-## ----Caption scatter plots, echo=FALSE------------------------------------------------------------------------
+## ----Caption scatter plots, echo=FALSE-----------------------------------------------------------
 if(ncol(num_data) >= 2){
   show_figure_legend("sc_plots", "Scatter plots.")
 }
 
 
-## ----Create scp with color, include=FALSE---------------------------------------------------------------------
+## ----Create scp with color, include=FALSE--------------------------------------------------------
 if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
   v3 <- colnames(cat_data)[1]
   v3_data <- select(cat_data, v3)
@@ -312,28 +305,28 @@ if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
 }
 
 
-## ----Show scp with color, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4---------------------------------
+## ----Show scp with color, echo=FALSE, fig.height=270/25.4, fig.width=190/25.4--------------------
 if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
   scc_plots
 }
 
 
-## ----Caption scp with color, echo=FALSE-----------------------------------------------------------------------
+## ----Caption scp with color, echo=FALSE----------------------------------------------------------
 if(ncol(num_data) >= 2 & ncol(cat_data) >= 1){
   show_figure_legend("sc_plots", "Scatter plots.")
 }
 
 
-## ----Select cat vars for these hands-on, include=FALSE--------------------------------------------------------
+## ----Select cat vars for these hands-on, include=FALSE-------------------------------------------
 sel_cat_var <- c("outcome", "iugr")
 
 
-## ----Show selected cat vars for these hands-on, echo=FALSE----------------------------------------------------
+## ----Show selected cat vars for these hands-on, echo=FALSE---------------------------------------
 cat("Only these categorical variables are visualized:\n")
 sel_cat_var
 
 
-## ----State number of box plots, echo=FALSE--------------------------------------------------------------------
+## ----State number of box plots, echo=FALSE-------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   combn_num_cat_var <-
     expand.grid(V1 = sel_cat_var, V2 = sel_num_var) |>
@@ -350,7 +343,7 @@ if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
 cat("Number of box plots (= # of possible pairs of num-cat. var.): ", combn_nc)
 
 
-## ----Create custom function for box plot----------------------------------------------------------------------
+## ----Create custom function for box plot---------------------------------------------------------
 box_plotter <- function(pair, data){
   bx_plot <-
     data |>
@@ -374,7 +367,7 @@ box_plotter <- function(pair, data){
 }
 
 
-## ----Create box plots, include=FALSE--------------------------------------------------------------------------
+## ----Create box plots, include=FALSE-------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   bx_plots <- pblapply(combn_num_cat_var, box_plotter, train_data)
   
@@ -384,19 +377,19 @@ if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
 }
 
 
-## ----Show box plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4--------------------------------------
+## ----Show box plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4-------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   bx_plots
 }
 
 
-## ----Caption box plots, echo=FALSE----------------------------------------------------------------------------
+## ----Caption box plots, echo=FALSE---------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   show_figure_legend("bx_plots", "Box plots.")
 }
 
 
-## ----Create custom function for violin plot-------------------------------------------------------------------
+## ----Create custom function for violin plot------------------------------------------------------
 violin_plotter <- function(pair, data){
   vl_plot <-
     data |>
@@ -420,7 +413,7 @@ violin_plotter <- function(pair, data){
 }
 
 
-## ----Create violin plots, include=FALSE-----------------------------------------------------------------------
+## ----Create violin plots, include=FALSE----------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   vl_plots <- pblapply(combn_num_cat_var, violin_plotter, train_data)
   
@@ -430,19 +423,19 @@ if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
 }
 
 
-## ----Show violin plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4-----------------------------------
+## ----Show violin plots, echo=FALSE, fig.height=216/25.4, fig.width=190/25.4----------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   vl_plots
 }
 
 
-## ----Caption violin plots, echo=FALSE-------------------------------------------------------------------------
+## ----Caption violin plots, echo=FALSE------------------------------------------------------------
 if(ncol(num_data) >= 1 & ncol(cat_data) >= 1){
   show_figure_legend("vl_plots", "Violin plots.")
 }
 
 
-## ----State number of stacked bar charts, echo=FALSE-----------------------------------------------------------
+## ----State number of stacked bar charts, echo=FALSE----------------------------------------------
 if(ncol(cat_data) >= 2){
   combn_cat_var <- combn(sel_cat_var, 2, simplify = FALSE)
   combn_c <- length(combn_cat_var)
@@ -453,7 +446,7 @@ if(ncol(cat_data) >= 2){
 cat("Number of stacked bar charts (= # of poss. pairs of cat. var.): ", combn_c)
 
 
-## ----Create custom function for stacked bar chart-------------------------------------------------------------
+## ----Create custom function for stacked bar chart------------------------------------------------
 sb_chart_plotter <- function(pair, data, mode = "proportion"){
   
   data <-
@@ -462,10 +455,6 @@ sb_chart_plotter <- function(pair, data, mode = "proportion"){
     `colnames<-`(c("V1", "V2")) |>
     group_by(V1, V2) |>
     summarize(n = n(), .groups = "drop")
-  
-  if(mode == "proportion"){
-    
-  }
   
   if(mode == "count"){
     data <-
@@ -495,7 +484,7 @@ sb_chart_plotter <- function(pair, data, mode = "proportion"){
 }
 
 
-## ----Create s-bar charts, include=FALSE-----------------------------------------------------------------------
+## ----Create s-bar charts, include=FALSE----------------------------------------------------------
 if(ncol(cat_data) >= 2){
   sb_charts <- pblapply(combn_cat_var, sb_chart_plotter, cat_data)
   
@@ -505,19 +494,19 @@ if(ncol(cat_data) >= 2){
 }
 
 
-## ----Show s-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4------------------------------------
+## ----Show s-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4-----------------------
 if(ncol(cat_data) >= 2){
   sb_charts
 }
 
 
-## ----Caption s-bar charts, echo=FALSE-------------------------------------------------------------------------
+## ----Caption s-bar charts, echo=FALSE------------------------------------------------------------
 if(ncol(cat_data) >= 2){
   show_figure_legend("sb_charts", "Stacked bar charts.")
 }
 
 
-## ----Create sc-bar charts, include=FALSE----------------------------------------------------------------------
+## ----Create sc-bar charts, include=FALSE---------------------------------------------------------
 if(ncol(cat_data) >= 2){
   cb_charts <- pblapply(combn_cat_var, sb_chart_plotter, cat_data, "count")
   
@@ -527,25 +516,25 @@ if(ncol(cat_data) >= 2){
 }
 
 
-## ----Show sc-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4-----------------------------------
+## ----Show sc-bar charts, echo=FALSE, fig.height=54/25.4, fig.width=190/25.4----------------------
 if(ncol(cat_data) >= 2){
   cb_charts
 }
 
 
-## ----Caption c-bar charts, echo=FALSE-------------------------------------------------------------------------
+## ----Caption c-bar charts, echo=FALSE------------------------------------------------------------
 if(ncol(cat_data) >= 2){
   show_figure_legend("cb_charts", "Stacked bar charts by count.")
 }
 
 
-## ----Create custom function to numerize categorical variables, include=FALSE----------------------------------
+## ----Create custom function to numerize categorical variables, include=FALSE---------------------
 numerize_cat_var <- function(x){
  as.numeric(x) - 1 
 }
 
 
-## ----Prepare cluster data, include=FALSE----------------------------------------------------------------------
+## ----Prepare cluster data, include=FALSE---------------------------------------------------------
 cluster_data <- train_data
 
 if(ncol(cat_data) > 0){
@@ -560,7 +549,7 @@ cluster_data <-
   na.omit() # Remove rows with NA in any columns
 
 
-## ----Prepare PC1 and PC2 for sample clustering, include=FALSE-------------------------------------------------
+## ----Prepare PC1 and PC2 for sample clustering, include=FALSE------------------------------------
 pca_fit <-
   cluster_data |>
   prcomp(scale. = TRUE) # Data standardization
@@ -571,19 +560,19 @@ pc12_data <-
   select(PC1, PC2)
 
 
-## ----Use complete linkage for hierarchical clustering, include=FALSE------------------------------------------
+## ----Use complete linkage for hierarchical clustering, include=FALSE-----------------------------
 hclust_fit <-
   pc12_data |>
   dist() |>
   hclust()
 
 
-## ----Identify cluster labels, include=FALSE-------------------------------------------------------------------
+## ----Identify cluster labels, include=FALSE------------------------------------------------------
 # Modify k accordingly
 h_cluster <- cutree(hclust_fit, k = 3)
 
 
-## ----Create custom function for PC-kmean plot-----------------------------------------------------------------
+## ----Create custom function for PC-kmean plot----------------------------------------------------
 pc_hclust_pca_plotter <- function(pc_data, h_cluster, pca_fit){
   
   var_exp <-
@@ -601,19 +590,19 @@ pc_hclust_pca_plotter <- function(pc_data, h_cluster, pca_fit){
 }
 
 
-## ----Create PC-HC plot, include=FALSE-------------------------------------------------------------------------
+## ----Create PC-HC plot, include=FALSE------------------------------------------------------------
 pc_hclust_pca_plot <- pc_hclust_pca_plotter(pc12_data, h_cluster, pca_fit)
 
 
-## ----Show PC-HC plot, echo=FALSE, fig.height=108/25.4, fig.width=190/25.4-------------------------------------
+## ----Show PC-HC plot, echo=FALSE, fig.height=108/25.4, fig.width=190/25.4------------------------
 pc_hclust_pca_plot
 
 
-## ----Caption PC-kmean plot, echo=FALSE------------------------------------------------------------------------
+## ----Caption PC-kmean plot, echo=FALSE-----------------------------------------------------------
 show_figure_legend("pc_hclust_pca_plot", "PC-HC plot.")
 
 
-## ----Create custom function for PC-hclust plot----------------------------------------------------------------
+## ----Create custom function for PC-hclust plot---------------------------------------------------
 pc_hclust_plotter <- function(hclust_fit, h_cluster){
   h_cluster <- factor(h_cluster)
   cols <- as.integer(h_cluster)
@@ -640,10 +629,403 @@ pc_hclust_plotter <- function(hclust_fit, h_cluster){
 }
 
 
-## ----Show PC-hclust plot, echo=FALSE, fig.height=190/25.4, fig.width=190/25.4---------------------------------
+## ----Show PC-hclust plot, echo=FALSE, fig.height=190/25.4, fig.width=190/25.4--------------------
 pc_hclust_plotter(hclust_fit, h_cluster)
 
 
-## ----Caption PC-hclust plot, echo=FALSE-----------------------------------------------------------------------
+## ----Caption PC-hclust plot, echo=FALSE----------------------------------------------------------
 show_figure_legend("pc_hclust_plotter(hclust_fit)", "PC-hclust plot.")
+
+
+## ----Create custom function to numerize categorical variables-2, include=FALSE-------------------
+numerize_cat_var <- function(x){
+ as.numeric(x) - 1 
+}
+
+
+## ----Prepare cluster data-2, include=FALSE-------------------------------------------------------
+cluster_data <- train_data
+
+if(ncol(cat_data) > 0){
+  cluster_data <-
+    cluster_data |>
+    mutate_if(is.factor, numerize_cat_var) # Numerize categorical variables
+}
+
+cluster_data <-
+  cluster_data |>
+  column_to_rownames(var = "id") |>
+  na.omit() # Remove rows with NA in any columns
+
+
+## ----Select variables for PCA--------------------------------------------------------------------
+# All variables except variable of interest
+pca_var <- setdiff(colnames(cluster_data), "outcome")
+
+# Selected variables (remove hash tag for commenting codes below)
+# pca_var <- c("uta_ri", "uta_pi", "uta_pi", "sflt1", "plgf")
+
+
+## ----Conduct PCA, include=FALSE------------------------------------------------------------------
+pca_fit_var <-
+  cluster_data |>
+  select_at(pca_var) |>
+  prcomp(scale. = TRUE) # Data standardization
+
+
+## ----Create custom function to make scree plot---------------------------------------------------
+scree_plotter <- function(pca){
+  # Extract variance explained
+  var_explained <-
+    pca$sdev^2 / sum(pca$sdev^2)
+
+  data <-
+    data.frame(
+      pc = seq_along(var_explained)
+      , var = var_explained
+    )
+
+  ggplot(data, aes(x = pc, y = var)) +
+    geom_line() +
+    geom_point() +
+    scale_x_continuous(breaks = data$pc) +
+    xlab("Principal Component") +
+    ylab("Proportion of Variance Explained") +
+    theme(
+      axis.title = element_text(size = 10)
+    )
+}
+
+
+## ----Show scree plot, echo=FALSE, fig.height=75/25.4, fig.width=190/25.4-------------------------
+scree_plotter(pca_fit_var)
+
+
+## ----Caption scree plot, echo=FALSE--------------------------------------------------------------
+show_figure_legend("scree_plotter(pca_fit_var)", "Scree plot.")
+
+
+## ----Create custom function to make score plot with optional grouping----------------------------
+pc_score_plotter <- function(
+  pca
+  , pc_x = 1
+  , pc_y = 2
+  , group = NULL
+){
+  # Extract scores
+  scores <-
+    as.data.frame(pca$x)
+
+  # Prepare data
+  data <-
+    scores |>
+    mutate(
+      group = if(is.null(group)) "All" else as.factor(group)
+    )
+
+  # Variance explained for labels
+  var_explained <-
+    pca$sdev^2 / sum(pca$sdev^2)
+
+  xlab <-
+    paste0(
+      "PC", pc_x, " ("
+      , round(var_explained[pc_x] * 100, 1)
+      , "%)"
+    )
+
+  ylab <-
+    paste0(
+      "PC", pc_y, " ("
+      , round(var_explained[pc_y] * 100, 1)
+      , "%)"
+    )
+
+  ggplot(data, aes(
+    x = .data[[paste0("PC", pc_x)]]
+    , y = .data[[paste0("PC", pc_y)]]
+    , color = group
+  )) +
+    geom_point(size = 3) +
+    xlab(xlab) +
+    ylab(ylab) +
+    theme(
+      axis.title = element_text(size = 10)
+      , legend.title = element_blank()
+    )
+}
+
+
+## ----Show score plot, echo=FALSE, fig.height=108/25.4, fig.width=190/25.4------------------------
+pc_score_plotter(pca_fit_var)
+
+
+## ----Caption score plot, echo=FALSE--------------------------------------------------------------
+show_figure_legend("pc_score_plotter(pca_fit_var)", "Score plot.")
+
+
+## ----Create custom function to make loading plot-------------------------------------------------
+pc_loading_plotter <- function(
+  pca
+  , pc_x = 1
+  , pc_y = 2
+  , labels = TRUE
+){
+  # Extract loadings
+  loadings <-
+    as.data.frame(pca$rotation)
+
+  loadings$variable <-
+    rownames(loadings)
+
+  # Variance explained
+  var_explained <-
+    pca$sdev^2 / sum(pca$sdev^2)
+
+  xlab <-
+    paste0(
+      "PC", pc_x, " ("
+      , round(var_explained[pc_x] * 100, 1)
+      , "%)"
+    )
+
+  ylab <-
+    paste0(
+      "PC", pc_y, " ("
+      , round(var_explained[pc_y] * 100, 1)
+      , "%)"
+    )
+
+  p <-
+    ggplot(loadings) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+
+    # Arrows
+    geom_segment(
+      aes(
+        x = 0, y = 0
+        , xend = .data[[paste0("PC", pc_x)]]
+        , yend = .data[[paste0("PC", pc_y)]]
+      )
+      , arrow = arrow(length = unit(0.2, "cm"), type = "closed")
+    ) +
+
+    xlab(xlab) +
+    ylab(ylab) +
+    theme(
+      axis.title = element_text(size = 10)
+    )
+
+  if(labels){
+    p <-
+      p +
+      geom_text(
+        aes(
+          x = .data[[paste0("PC", pc_x)]]
+          , y = .data[[paste0("PC", pc_y)]]
+          , label = variable
+        )
+        , vjust = -0.5
+        , size = 3
+      )
+  }
+
+  return(p)
+}
+
+
+## ----Show loading plot, echo=FALSE, fig.height=190/25.4, fig.width=190/25.4----------------------
+pc_loading_plotter(pca_fit_var)
+
+
+## ----Caption loading plot, echo=FALSE------------------------------------------------------------
+show_figure_legend("pc_loading_plotter(pca_fit_var)", "Loading plot.")
+
+
+## ----Prepare PC1 and PC2 for clustering analysis, include=FALSE----------------------------------
+pc12_var_data <-
+  pca_fit_var$x |>
+  as.data.frame() |>
+  select(PC1, PC2)
+
+
+## ----Choose between hierarhical and k-means clustering-------------------------------------------
+which_clustering <- c(`1` = "hierarchical", `2` = "k-means")[1]
+
+
+## ----Choose clustering parameters----------------------------------------------------------------
+# For hierarchical clustering
+hclust_distance_method <-
+  c(
+    `1` = "gower"
+    , `2` = "euclidean"
+    , `3` = "binary"
+    , `4` = "canberra"
+    , `5` = "manhattan"
+    , `6` = "maximum"
+    , `7` = "minkowski"
+  )[1]
+
+hclust_agglomeration_method <-
+  c(
+    `1` = "average"
+    , `2` = "ward.D2"
+    , `3` = "complete"
+    , `4` = "single"
+  )[1]
+
+h_cluster_n <- 2 # Change later after assessing the plot
+
+# For k-means clustering
+k_cluster <- 2 # If 2 clusters are expected, change to k_cluster <- 2
+
+kmeans_k_method <-
+  c(`1` = "elbow"
+    , `2` = "silhouette"
+  )[2]
+
+kmeans_k_range <- 2:10
+
+silhouette_distance_method <-
+  c(
+    `1` = "gower"
+    , `2` = "euclidean"
+    , `3` = "binary"
+    , `4` = "canberra"
+    , `5` = "manhattan"
+    , `6` = "maximum"
+    , `7` = "minkowski"
+  )[1]
+
+
+## ----Create a function to compute obtain WCSS----------------------------------------------------
+kmeans_wcss <- \(k, data){
+  set.seed(seed)
+  fit <- kmeans(x = data, centers = k)
+  
+  data.frame(k = k, metric = fit$tot.withinss)
+}
+
+
+## ----Create a function to compute obtain silhouette score----------------------------------------
+kmeans_silhouette_score <- \(k, data){
+  set.seed(seed)
+  fit <- kmeans(x = data, centers = k)
+  
+  d <-
+    if(silhouette_distance_method == "gower"){
+      cluster::daisy(data, metric = "gower")
+    }else{
+      dist(data, method = silhouette_distance_method)
+    }
+
+  sil <- silhouette(fit$cluster, d)
+
+  data.frame(k = k, metric = mean(sil[, "sil_width"]))
+}
+
+
+## ----Create a function to plot elbow or silhouette method----------------------------------------
+kmeans_k_plotter <- function(
+  data
+  , k_range = 2:10
+  , method = c("elbow", "silhouette")
+){
+  method <- match.arg(method)
+
+  if(method == "elbow"){
+    metric_data <- map_dfr(k_range, \(k) kmeans_wcss(k, data))
+
+    ylab <- "Total Within-Cluster Sum of Squares"
+  }else{
+    metric_data <- map_dfr(k_range, \(k) kmeans_silhouette_score(k, data))
+
+    ylab <- "Average Silhouette Width"
+  }
+
+  ggplot(metric_data, aes(x = k, y = metric)) +
+    geom_line() +
+    geom_point() +
+    scale_x_continuous(breaks = k_range) +
+    xlab("Number of Clusters (K)") +
+    ylab(ylab) +
+    theme(
+      axis.title = element_text(size = 10)
+    )
+}
+
+
+## ----Plot to choose k for k-means clustering if needed, include=FALSE----------------------------
+if(which_clustering == "k-means" & is.null(k_cluster)){
+  k_selection_plot <-
+    kmeans_k_plotter(
+      data = pc12_var_data
+      , k_range = kmeans_k_range
+      , method = kmeans_k_method
+    )
+}
+
+
+## ----Show k plot, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4-----------------------------
+if(which_clustering == "k-means" & is.null(k_cluster)){
+  k_selection_plot
+}
+
+
+## ----Caption k plot, echo=FALSE------------------------------------------------------------------
+if(which_clustering == "k-means" & is.null(k_cluster)){
+  show_figure_legend("k_selection_plot", "k plot.")
+}
+
+
+## ----Conduct clustering analysis, include=FALSE--------------------------------------------------
+if(which_clustering == "hierarchical"){
+  if(hclust_distance_method == "gower"){
+    clustering_fit <-
+      pc12_data |>
+      cluster::daisy(metric = "gower") |>
+      hclust(method = hclust_agglomeration_method)
+  }else{
+    clustering_fit <-
+      pc12_data |>
+      dist(method = hclust_distance_method) |>
+      hclust(method = hclust_agglomeration_method)
+  }
+}else if(which_clustering == "k-means"){
+  set.seed(seed)
+  clustering_fit <- kmeans(pc12_data, k_cluster)
+}
+
+
+## ----Obtain clusters, include=FALSE--------------------------------------------------------------
+if(which_clustering == "hierarchical"){
+  cluster_group <- cutree(clustering_fit, k = h_cluster_n)
+}else{
+  cluster_group <- clustering_fit$cluster
+}
+
+
+## ----Show PC-hcl plot EDA, echo=FALSE, fig.height=190/25.4, fig.width=190/25.4-------------------
+if(which_clustering == "hierarchical"){
+  pc_hclust_plot <- pc_hclust_plotter(clustering_fit, cluster_group)
+}
+
+
+## ----Caption PC-hcl plot EDA, echo=FALSE---------------------------------------------------------
+if(which_clustering == "hierarchical"){
+  show_figure_legend("pc_hclust_plot", "PC-hclust plot.")
+}
+
+
+## ----Create cl-score plot, include=FALSE---------------------------------------------------------
+cl_score_plot <- pc_score_plotter(pca_fit_var, group = cluster_group)
+
+
+## ----Show cl-score plot, echo=FALSE, fig.height=108/25.4, fig.width=190/25.4---------------------
+cl_score_plot
+
+
+## ----Caption cl-score plot, echo=FALSE-----------------------------------------------------------
+show_figure_legend("cl_score_plot", "Clustered score plot.")
 
