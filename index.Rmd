@@ -908,7 +908,7 @@ pc12_var_data <-
 ## Clustering analysis
 
 ```{r Choose between hierarhical and k-means clustering}
-which_clustering <- c(`1` = "hierarchical", `2` = "k-means")[1]
+which_clustering <- c(`1` = "hierarchical", `2` = "k-means")[2]
 ```
 
 ```{r Choose clustering parameters}
@@ -932,15 +932,15 @@ hclust_agglomeration_method <-
     , `4` = "single"
   )[1]
 
-h_cluster_n <- 2 # Change later after assessing the plot
+h_cluster_n <- 4 # Change later after assessing the plot
 
 # For k-means clustering
-k_cluster <- 2 # If 2 clusters are expected, change to k_cluster <- 2
+k_cluster <- NULL # If 2 clusters are expected, change to k_cluster <- 2
 
 kmeans_k_method <-
   c(`1` = "elbow"
     , `2` = "silhouette"
-  )[2]
+  )[1]
 
 kmeans_k_range <- 2:10
 
