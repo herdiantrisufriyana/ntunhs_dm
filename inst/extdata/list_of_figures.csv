@@ -15,3 +15,9 @@ pc_loading_plotter(pca_fit_var)
 k_selection_plot
 pc_hclust_plot
 cl_score_plot
+qq_plots
+qt_plots
+correlation_matrix
+correlation_network_voi
+correlation_network_coi
+correlation_network_vcf
