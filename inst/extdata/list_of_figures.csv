@@ -21,3 +21,6 @@ correlation_matrix
 correlation_network_voi
 correlation_network_coi
 correlation_network_vcf
+causal_diagram_vcf_plot
+causal_diagram_dcg_plot
+causal_diagram_coldes_z_plot

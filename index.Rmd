@@ -35,8 +35,8 @@ library(readxl)
 library(cluster)
 library(broom)
 library(brms)
-library(cmdstanr)
-library(broom.mixed)
+library(cmdstanr) # Comment this if stand is not installable
+library(broom.mixed) # Comment this if stand is not installable
 library(igraph)
 union <- base::union
 library(ggnetwork)
@@ -1357,6 +1357,22 @@ outliers <-
   select(colnames(num_data_trans))
 ```
 
+```{r Create dataset of outlier indicators, include=FALSE}
+num_proc_data_outlier <-
+  outliers |>
+  mutate_all(as.numeric) |>
+  mutate_all(as.factor) |>
+  rename_all(paste0, "_ol")
+```
+
+```{r Obtain train set from outlier dataset, include=FALSE}
+num_train_data_outlier <-
+  select(proc_data_trans, id) |>
+  cbind(num_proc_data_outlier) |>
+  slice(match(train_id, id)) |>
+  select(-id)
+```
+
 ```{r Summarize outliers for train set, include=FALSE}
 outliers_sum <-
   select(proc_data_trans, id) |>
@@ -1392,18 +1408,19 @@ proc_data_outlier_rm <-
 train_data_outlier_rm <- slice(proc_data_outlier_rm, match(train_id, id))
 ```
 
-```{r Add missingness indicators, include=FALSE}
-train_data_ms <-
-  train_data_outlier_rm |>
+```{r Add outlier and missingness indicators, include=FALSE}
+train_data_olms <-
+  train_data_trans |>
   select_if(\(x) any(is.na(x))) |>
   mutate_all(is.na) |>
   mutate_all(as.numeric) |>
   mutate_all(factor) |>
   rename_all(paste0, "_ms")
 
-train_data_ms <-
+train_data_olms <-
   train_data_outlier_rm |>
-  cbind(train_data_ms)
+  cbind(num_train_data_outlier) |>
+  cbind(train_data_olms)
 ```
 
 ### Assess normality by QQ plot and Shapiro-Wilk test
@@ -1458,7 +1475,7 @@ normality_data <-
 scale_data <-
     data.frame(
      scale =
-       train_data_ms |>
+       train_data_olms |>
        select(-id) |>
        sapply(class)
    ) |>
@@ -1500,26 +1517,102 @@ ps_data <-
   comb_pair |>
   filter(scale_V1 == "factor" & scale_V2 == "factor") |>
   select(V1, V2) |>
-  pmap(\(V1, V2) pair_summary(train_data_ms, V1, V2)) |>
+  pmap(\(V1, V2) pair_summary(train_data_olms, V1, V2)) |>
   reduce(rbind) |>
   group_by(V1, V2) |>
   summarize(ps = sum(n == 0) > 0, .groups = "drop")
+
+# Temporarily add this if stan is not installable
+# |>
+#   mutate(ps = FALSE) 
 ```
 
 ## Correlation tests
 
 ```{r Obtain number of categories for categorical variables, include=FALSE}
 level_data <-
-  train_data_ms |>
+  train_data_olms |>
   select_if(is.factor) |>
   summarize_all(\(x) length(intersect(levels(x), unique(x)))) |>
   gather(col_name, level_n)
 ```
 
+```{r Identify variables with only 1 unique values, include=FALSE}
+var_unique_1 <-
+  train_data_olms |>
+  select(-id) |>
+  lapply(unique) |>
+  lapply(setdiff, NA) |>
+  sapply(length)
+
+var_unique_1 <- var_unique_1[var_unique_1 < 2]
+var_unique_1 <- names(var_unique_1)
+```
+
+```{r Identify var with 1 unique values after drop NA in pair, include=FALSE}
+var_unique_1_na_pair0 <-
+  comb_pair |>
+  filter(!(V1 %in% var_unique_1 | V2 %in% var_unique_1))
+  
+var_unique_1_na_pair <-
+  var_unique_1_na_pair0 |>
+  select(V1, V2) |>
+  pmap(\(V1, V2) select_at(train_data_olms, c(V1, V2))) |>
+  lapply(unique) |>
+  lapply(drop_na) |>
+  lapply(lapply, unique) |>
+  lapply(lapply, length) |>
+  sapply(\(x) any(x < 2))
+
+var_unique_1_na_pair <-
+  var_unique_1_na_pair0 |>
+  slice(which(var_unique_1_na_pair)) |>
+  select(V1, V2)
+```
+
+```{r Identify mixed-scale pairs with only 1 sample in a cat, include=FALSE}
+var_mixed_pair_1_cat_V10 <-
+  comb_pair |>
+  filter(scale_V1 == "factor" & scale_V2 == "numeric") |>
+  select(V1, V2)
+
+var_mixed_pair_1_cat_V1 <-
+  var_mixed_pair_1_cat_V10 |>
+  pmap(\(V1, V2) group_by_at(train_data_olms, c(V1, V2)))
+
+var_mixed_pair_1_cat_V20 <-
+  comb_pair |>
+  filter(scale_V1 == "numeric" & scale_V2 == "factor") |>
+  select(V1, V2)
+
+var_mixed_pair_1_cat_V2 <-
+  var_mixed_pair_1_cat_V20 |>
+  pmap(\(V1, V2) group_by_at(train_data_olms, c(V2, V1)))
+
+var_mixed_pair_1_cat <-
+  list(V1 = var_mixed_pair_1_cat_V1, V2 = var_mixed_pair_1_cat_V2) |>
+  lapply(lapply, summarize, n = n()) |>
+  lapply(lapply, drop_na) |>
+  lapply(lapply, `colnames<-`, c("cat", "num", "n")) |>
+  lapply(lapply, group_by, cat) |>
+  lapply(lapply, summarize, n = sum(n)) |>
+  lapply(lapply, pull, n) |>
+  lapply(sapply, \(x) any(x < 2))
+
+var_mixed_pair_1_cat <-
+  list(V1 = var_mixed_pair_1_cat_V10, V2 = var_mixed_pair_1_cat_V20) |>
+  imap(~ slice(.x, which(var_mixed_pair_1_cat[[.y]]))) |>
+  reduce(rbind)
+```
+
 ```{r Identify untestable pairs, include=FALSE}
 comb_pair_untestable <-
   comb_pair |>
-  filter(str_remove_all(V1, "_ms$") == str_remove_all(V2, "_ms$"))
+  filter(
+    V1 %in% var_unique_1 | V2 %in% var_unique_1
+    | paste0(V1, V2) %in% unite(var_unique_1_na_pair, V, V1, V2, sep = "")$V
+    | paste0(V1, V2) %in% unite(var_mixed_pair_1_cat, V, V1, V2, sep = "")$V
+  )
 ```
 
 ```{r Join combinations with normality-separation-level data, include=FALSE}
@@ -1576,7 +1669,7 @@ comb_pair_non_normal_normal <-
 
 ```{r Create custom function for correlation test}
 correlation_test <- function(data, V1, V2, method){
-  cor.test(train_data_ms[[V1]], train_data_ms[[V2]], method = "pearson") |>
+  cor.test(data[[V1]], data[[V2]], method = "pearson") |>
     tidy() |>
     mutate(V1 = !!V1, V2 = !!V2) |>
     select(V1, V2, everything())
@@ -1587,7 +1680,7 @@ correlation_test <- function(data, V1, V2, method){
 if(nrow(comb_pair_normal_normal) > 0){
   cm_pearson <-
     comb_pair_normal_normal |>
-    pmap(\(V1, V2) correlation_test(train_data_ms, V1, V2, "pearson")) |>
+    pmap(\(V1, V2) correlation_test(train_data_olms, V1, V2, "pearson")) |>
     reduce(rbind)
 }
 ```
@@ -1596,7 +1689,7 @@ if(nrow(comb_pair_normal_normal) > 0){
 if(nrow(comb_pair_non_normal_normal) > 0){
   cm_spearman <-
     comb_pair_non_normal_normal |>
-    pmap(\(V1, V2) correlation_test(train_data_ms, V1, V2, "spearman")) |>
+    pmap(\(V1, V2) correlation_test(train_data_olms, V1, V2, "spearman")) |>
     reduce(rbind)
 }
 ```
@@ -1656,7 +1749,7 @@ bayesian_cat_reg_fast <- function(data, V1, V2){
 if(nrow(comb_pair_ps_gt2_cat_V1) > 0){
   cm_bayesian_cat_reg <-
     comb_pair_ps_gt2_cat_V1 |>
-    pmap(\(V1, V2) bayesian_cat_reg_fast(train_data_ms, V1, V2)) |>
+    pmap(\(V1, V2) bayesian_cat_reg_fast(train_data_olms, V1, V2)) |>
     reduce(rbind)
 }
 ```
@@ -1702,7 +1795,7 @@ bayesian_bern_reg_fast <- function(data, V1, V2){
 if(nrow(comb_pair_ps_2_cat_V1) > 0){
   cm_bayesian_bern_reg <-
     comb_pair_ps_2_cat_V1 |>
-    pmap(\(V1, V2) bayesian_bern_reg_fast(train_data_ms, V1, V2)) |>
+    pmap(\(V1, V2) bayesian_bern_reg_fast(train_data_olms, V1, V2)) |>
     reduce(rbind)
 }
 ```
@@ -1733,7 +1826,7 @@ fisher_exact_test_fast <- function(data, V1, V2){
 if(nrow(comb_pair_non_ps) > 0){
   cm_fisher <-
     comb_pair_non_ps |>
-    pmap(\(V1, V2) fisher_exact_test_fast(train_data_ms, V1, V2)) |>
+    pmap(\(V1, V2) fisher_exact_test_fast(train_data_olms, V1, V2)) |>
     reduce(rbind)
 }
 ```
@@ -1854,7 +1947,7 @@ one_way_anova_test <- function(data, V1, V2, inv){
 if(nrow(comb_pair_mixed_gt2_norm) > 0){
   cm_one_way_anova <-
     comb_pair_mixed_gt2_norm |>
-    pmap(\(V1, V2, inv) one_way_anova_test(train_data_ms, V1, V2, inv)) |>
+    pmap(\(V1, V2, inv) one_way_anova_test(train_data_olms, V1, V2, inv)) |>
     reduce(rbind)
 }
 ```
@@ -1891,7 +1984,7 @@ kruskal_wallis_test <- function(data, V1, V2, inv){
 if(nrow(comb_pair_mixed_gt2_non_norm) > 0){
   cm_kruskal_wallis <-
     comb_pair_mixed_gt2_non_norm |>
-    pmap(\(V1, V2, inv) kruskal_wallis_test(train_data_ms, V1, V2, inv)) |>
+    pmap(\(V1, V2, inv) kruskal_wallis_test(train_data_olms, V1, V2, inv)) |>
     reduce(rbind)
 }
 ```
@@ -1956,7 +2049,7 @@ welch_two_sample_t_test <- function(data, V1, V2, inv){
 if(nrow(comb_pair_mixed_2_norm) > 0){
   cm_welch_two_sample_t <-
     comb_pair_mixed_2_norm |>
-    pmap(\(V1, V2, inv) welch_two_sample_t_test(train_data_ms, V1, V2, inv)) |>
+    pmap(\(V1, V2, inv) welch_two_sample_t_test(train_data_olms, V1, V2, inv)) |>
     reduce(rbind)
 }
 ```
@@ -2014,7 +2107,7 @@ wilcoxon_rank_sum_test <- function(data, V1, V2, inv){
 if(nrow(comb_pair_mixed_2_non_norm) > 0){
   cm_wilcoxon_rank_sum <-
     comb_pair_mixed_2_non_norm |>
-    pmap(\(V1, V2, inv) wilcoxon_rank_sum_test(train_data_ms, V1, V2, inv)) |>
+    pmap(\(V1, V2, inv) wilcoxon_rank_sum_test(train_data_olms, V1, V2, inv)) |>
     reduce(rbind)
 }
 ```
@@ -2035,24 +2128,28 @@ translate_ci_to_p_value <- function(data, V1, V2){
 }
 ```
 
-```{r Translate CI to p-value for Bayesian categorical regression, include=FALSE}
-cm_bayesian_cat_reg_p_value <-
-  cm_bayesian_cat_reg |>
-  select(V1, V2) |>
-  unique() |>
-  pmap(\(V1, V2) translate_ci_to_p_value(cm_bayesian_cat_reg, V1, V2)) |>
-  reduce(rbind) |>
-  mutate(method = "Bayesian categorical regression")
+```{r Translate CI to p-value for Bayesian cat regression, include=FALSE}
+if(nrow(comb_pair_ps_gt2_cat_V1) > 0){
+  cm_bayesian_cat_reg_p_value <-
+    cm_bayesian_cat_reg |>
+    select(V1, V2) |>
+    unique() |>
+    pmap(\(V1, V2) translate_ci_to_p_value(cm_bayesian_cat_reg, V1, V2)) |>
+    reduce(rbind) |>
+    mutate(method = "Bayesian categorical regression")
+}
 ```
 
 ```{r Translate CI to p-value for Bayesian Bernoulli log reg, include=FALSE}
-cm_bayesian_bern_reg_p_value <-
-  cm_bayesian_bern_reg |>
-  select(V1, V2) |>
-  unique() |>
-  pmap(\(V1, V2) translate_ci_to_p_value(cm_bayesian_bern_reg, V1, V2)) |>
-  reduce(rbind) |>
-  mutate(method = "Bayesian Bernoulli logistic regression")
+if(nrow(comb_pair_ps_2_cat_V1) > 0){
+  cm_bayesian_bern_reg_p_value <-
+    cm_bayesian_bern_reg |>
+    select(V1, V2) |>
+    unique() |>
+    pmap(\(V1, V2) translate_ci_to_p_value(cm_bayesian_bern_reg, V1, V2)) |>
+    reduce(rbind) |>
+    mutate(method = "Bayesian Bernoulli logistic regression")
+}
 ```
 
 ```{r Combine results from all correlation tests, include=FALSE}
@@ -2065,16 +2162,41 @@ if(nrow(comb_pair_untestable) > 0){
         untestable =
           comb_pair_untestable |>
           select(V1, V2) |>
-          mutate(p.value = as.numeric(NA), method = "None (untestable)")
+          mutate(
+            p.value = as.numeric(NA)
+            , method =
+              case_when(
+                V1 %in% var_unique_1 | V2 %in% var_unique_1
+                ~ paste0(
+                    "None (untestable; "
+                    , "1 variable only has 1 unique value after dropping "
+                    , "missing values)"
+                  )
+                , paste0(V1, V2)
+                  %in% unite(var_unique_1_na_pair, V, V1, V2, sep = "")$V
+                  ~ paste(
+                      "None (untestable; "
+                      , "1 variable only has 1 unique value after dropping "
+                      , "missing values in pair)"
+                    )
+                , paste0(V1, V2)
+                  %in% unite(var_mixed_pair_1_cat, V, V1, V2, sep = "")$V
+                  ~ paste0(
+                      "None (untestable; "
+                      , "a mixed-scale pairs with only 1 sample in 1 category"
+                    )
+                
+              )
+          )
       )
     )
 }
 
-if(nrow(comb_pair_normal_normal) > 0){
+if(!is.null(cm_pearson)){
   correlation_results <- c(correlation_results, list(pearson = cm_pearson))
 }
 
-if(nrow(comb_pair_non_normal_normal) > 0){
+if(!is.null(cm_spearman)){
   correlation_results <- c(correlation_results, list(spearman = cm_spearman))
 }
 
@@ -2089,11 +2211,11 @@ if(nrow(comb_pair_ps_2_cat_V1) > 0){
     c(list(bayesian_bern_reg = cm_bayesian_bern_reg_p_value))
 }
 
-if(nrow(comb_pair_non_ps) > 0){
+if(!is.null(cm_fisher)){
   correlation_results <- c(correlation_results, list(fisher = cm_fisher))
 }
 
-if(nrow(comb_pair_mixed_gt2_norm) > 0){
+if(!is.null(cm_one_way_anova)){
   correlation_results <-
     correlation_results |>
     c(list(
@@ -2105,17 +2227,17 @@ if(nrow(comb_pair_mixed_gt2_norm) > 0){
     )
 }
 
-if(nrow(comb_pair_mixed_gt2_non_norm) > 0){
+if(!is.null(cm_kruskal_wallis)){
   correlation_results <-
     c(correlation_results, list(kruskal_wallis = cm_kruskal_wallis))
 }
 
-if(nrow(comb_pair_mixed_2_norm) > 0){
+if(!is.null(cm_welch_two_sample_t)){
   correlation_results <-
     c(correlation_results, list(welch_two_sample_t = cm_welch_two_sample_t))
 }
 
-if(nrow(comb_pair_mixed_2_non_norm) > 0){
+if(!is.null(cm_wilcoxon_rank_sum)){
   correlation_results <-
     c(correlation_results, list(wilcoxon_rank_sum = cm_wilcoxon_rank_sum))
 }
@@ -2172,7 +2294,7 @@ cor_matrix_plotter <- function(data, triangle = "lower"){
 
   ggplot(data_plot, aes(x = V1, y = V2, fill = sig)) +
     geom_tile(color = "white") +
-    geom_text(aes(label = method_no), size = 3) +
+    geom_text(aes(label = method_no), size = 2.5) +
     scale_fill_manual(
       values = c(
         "No" = "grey80",
@@ -2225,7 +2347,7 @@ show_table(cm_method_no, "cm_method_no", "Correlation methods.")
 correlations <-
   correlation_matrix$data |>
   filter(sig == "Yes") |>
-  filter(!(str_detect(V1, "_ms$") | str_detect(V2, "_ms$"))) |>
+  filter(!(str_detect(V1, "_ol$|ms$") | str_detect(V2, "_ol$|_ms$"))) |>
   select(V1, V2)
 ```
 
@@ -2234,6 +2356,9 @@ correlation_network_plotter <- function(
   correlations
   , layout = "fr"
   , focal = NULL   # length 2
+  , directed = FALSE
+  , title = NULL
+  , curvature = 0
 ){
   nodes <-
     tibble(
@@ -2301,7 +2426,7 @@ correlation_network_plotter <- function(
       x = layout_xy$x,
       y = layout_xy$y
     )
-
+  
   edge_data <-
     edges |>
     left_join(
@@ -2312,27 +2437,88 @@ correlation_network_plotter <- function(
       rename(node_data, xend = x, yend = y, to = name),
       by = join_by(to)
     )
-
-  ggplot() +
-    geom_segment(
-      data = edge_data,
-      aes(x = x, y = y, xend = xend, yend = yend),
-      color = "grey75",
-      linewidth = 0.4
-    ) +
-    geom_point(
-      data = node_data,
-      aes(x = x, y = y),
-      size = 2
-    ) +
-    geom_text(
-      data = node_data,
-      aes(x = x, y = y, label = name),
-      nudge_y = 0.03,
-      size = 3
-    ) +
+  
+  if(!is.null(focal)){
+    node_data <-
+      node_data |>
+      mutate(
+        voi =
+          ifelse(
+            name %in% focal
+            , paste0("Focal ", as.numeric(factor(name, focal)))
+            , "Non-focal"
+          )
+      )
+    
+    edge_data <-
+      edge_data |>
+      mutate(
+        voi =
+          ifelse(
+            from %in% focal
+            , paste0("Focal ", as.numeric(factor(from, focal)))
+            , "Non-focal"
+          )
+      )
+  }
+  
+  edge_data <-
+    edge_data |>
+    filter(!(abs(x - xend) < 1e-12 & abs(y - yend) < 1e-12))
+  
+  p <- ggplot()
+  
+  if(!is.null(focal)){
+    p <-
+      p +
+      geom_nodes(data = node_data, aes(x, y, color = voi), size = 6)
+  }else{
+    p <-
+      p +
+      geom_nodes(data = node_data, aes(x, y), size = 6)
+  }
+    
+  
+  if(directed){
+    p <-
+      p +
+      geom_edges(
+        data = edge_data,
+        aes(x, y, xend = xend, yend = yend, color = voi),
+        arrow = arrow(length = unit(6, "pt"), type = "closed"),
+        curvature = curvature
+      )
+  }else{
+    p <-
+      p +
+      geom_edges(
+        data = edge_data,
+        aes(x, y, xend = xend, yend = yend),
+        curvature = curvature
+      )
+  }
+  
+  if(!is.null(focal)){
+    p <-
+      p +
+      geom_label(
+        data = node_data, aes(x, y, label = name, color = voi),
+        size = 3, hjust = -0.2, vjust = 1.2, show.legend = FALSE
+      )
+  }else{
+    p <-
+      p +
+      geom_label(
+        data = node_data, aes(x, y, label = name),
+        size = 3, hjust = -0.2, vjust = 1.2, show.legend = FALSE
+      )
+  }
+  
+  p +
+    scale_color_discrete("Variable of\ninterest") +
     coord_cartesian(clip = "off") +
-    theme_void()
+    theme_blank() +
+    ggtitle(title)
 }
 ```
 
@@ -2348,11 +2534,11 @@ correlation_network_voi
 ```
 
 ```{r Caption cor net for VOI, echo=FALSE}
-show_figure_legend("correlation_network_voi", "Correlation network for VOI.")
+show_figure_legend("correlation_network_voi", "Correlation network for VOI without showing edges among non-VOI variables.")
 ```
 
 ```{r Variable 2 of interest for correlation of interest (COI), include=FALSE}
-voi2 <- "sflt1_plgf"
+voi2 <- "plgf"
 ```
 
 ```{r Determine correlation of interest (COI), include=FALSE}
@@ -2362,7 +2548,8 @@ coi <-
 ```
 
 ```{r Plot cor net for COI, include=FALSE}
-correlation_network_coi <- correlation_network_plotter(coi)
+correlation_network_coi <-
+  correlation_network_plotter(coi, focal = c("outcome", voi2))
 ```
 
 ```{r Show cor net for COI, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4}
@@ -2370,7 +2557,7 @@ correlation_network_coi
 ```
 
 ```{r Caption cor net for COI, echo=FALSE}
-show_figure_legend("correlation_network_coi", "Correlation network for COI.")
+show_figure_legend("correlation_network_coi", "Correlation network for COI related to two VOIs without showing edges among non-VOI variables.")
 ```
 
 ```{r Identify statistical confounders, include=FALSE}
@@ -2397,7 +2584,7 @@ vcf <-
 
 ```{r Plot cor net for VCF, include=FALSE}
 correlation_network_vcf <-
-  correlation_network_plotter(vcf, "tree", c("sflt1_plgf", "outcome"))
+  correlation_network_plotter(vcf, "tree", c("outcome", voi2))
 ```
 
 ```{r Show cor net for VCF, echo=FALSE, fig.height=50/25.4, fig.width=190/25.4}
@@ -2405,6 +2592,605 @@ correlation_network_vcf
 ```
 
 ```{r Caption cor net for VCF, echo=FALSE}
-show_figure_legend("correlation_network_vcf", "Correlation network for VCF")
+show_figure_legend("correlation_network_vcf", "Correlation network for VCF related to two VOIs without showing edges among non-VOI variables.")
 ```
+
+# Causal graph
+
+## Causal, mediator, confounder, and collider paths
+
+```{r Create undirected VOIs with confounders, include=FALSE}
+vcf_undirected <- mutate(vcf, from = NA)
+```
+
+```{r Write the undirected VOIs to CSV, include=FALSE}
+write_csv(vcf_undirected, "inst/extdata/vcf_undirected.csv")
+```
+
+```{r Determine causal direction per pair related to VOIs, include=FALSE}
+vcf_directed <-
+  read_csv("inst/extdata/vcf_directed.csv", show_col_types = FALSE)
+```
+
+```{r Obtain causal diagram data from VCF, include=FALSE}
+causal_diagram_vcf_data <-
+  vcf_directed |>
+  mutate(to = ifelse(from == 1, 2, 1)) |>
+  mutate(
+    from = ifelse(from == 1, V1, V2)
+    , to = ifelse(to == 1, V1, V2)
+  ) |>
+  select(V1 = from, V2 = to)
+```
+
+```{r Plot causal diagram for VCF, include=FALSE}
+causal_diagram_vcf_plot <-
+  causal_diagram_vcf_data |>
+  correlation_network_plotter(
+    "tree"
+    , focal = c("outcome", voi2)
+    , directed = TRUE
+  )
+```
+
+```{r CD for VCF, echo=FALSE, fig.height=50/25.4, fig.width=190/25.4}
+causal_diagram_vcf_plot
+```
+
+```{r Caption CD for VCF, echo=FALSE}
+show_figure_legend("causal_diagram_vcf_plot", "Causal diagram for VCF related to two VOIs without showing edges among non-VOI variables.")
+```
+
+```{r Determine causal-mediator-confounder-collider of 2 VOIs, include=FALSE}
+path <-
+  read_csv("inst/extdata/path.csv", show_col_types = FALSE) |>
+  group_by(path) |>
+  summarise(values = list(variable)) |>
+  deframe()
+```
+
+## Causation related to measurement variables
+
+```{r Create a function to connect two outlier or missingness indicators}
+olms_connection <- function(data, suffix){
+  data |>
+    mutate_all(as.character) |>
+    mutate(
+      from =
+        case_when(
+          str_detect(V1, suffix) & str_detect(V2, suffix) ~ paste0(V1, "|", V2)
+          , str_detect(V1, suffix) & !str_detect(V2, suffix) ~ V2
+          , TRUE ~ V1
+        )
+      , to =
+        case_when(
+          str_detect(V2, suffix) & str_detect(V1, suffix) ~ paste0(V2, "|", V1)
+          , str_detect(V2, suffix) & !str_detect(V1, suffix) ~ V2
+          , TRUE ~ V1
+        )
+    ) |>
+    separate_rows(from, sep = "\\|") |>
+    separate_rows(to, sep = "\\|") |>
+    filter(from != to) |>
+    select(V1 = from, V2 = to) |>
+    unique()
+}
+```
+
+### Measurement error
+
+```{r Filter significant correlations of outlier indicators, include=FALSE}
+vcf_ol <- paste0(unique(c(vcf$V1, vcf$V2)), "_ol")
+
+correlations_ol <-
+  correlation_matrix$data |>
+  filter(sig == "Yes") |>
+  filter(V1 %in% vcf_ol | V2 %in% vcf_ol) |>
+  select(V1, V2)
+```
+
+```{r Determine causal direction with outlier indicators, include=FALSE}
+ol_directed <- olms_connection(correlations_ol, "_ol$")
+```
+
+```{r Determine ol-causal direction with measurement variables, include=FALSE}
+o_directed <-
+  data.frame(V1 = unique(ol_directed$V2)) |>
+  mutate(V2 = str_replace_all(V1, "_ol$", "_m"))
+
+o_directed <-
+  data.frame(
+    V1 = unique(c(causal_diagram_vcf_data$V1, causal_diagram_vcf_data$V2))
+  ) |>
+  mutate(V2 = paste0(V1, "_m")) |>
+  rbind(o_directed)
+```
+
+```{r Determine ol-causal direction of all with outliers, include=FALSE}
+o_directed_all <-
+  data.frame(V1 = colnames(train_data_olms)) |>
+  filter(str_detect(V1, "_ol$")) |>
+  mutate(V2 = str_replace_all(V1, "_ol$", "_m"))
+
+o_directed_all <-
+  o_directed_all |>
+  mutate(V1 = str_remove_all(V1, "_ol$")) |>
+  rbind(o_directed_all)
+```
+
+```{r Obtain CD data with outlier indicators, include=FALSE}
+causal_diagram_ol_data <-
+  causal_diagram_vcf_data |>
+  rbind(o_directed) |>
+  rbind(ol_directed) |>
+  rbind(o_directed_all) |>
+  unique()
+```
+
+```{r Create custom function to assess outlier by CD}
+assess_ol <- function(data, focal, title = NULL){
+  focal <- paste0(focal, c("", "_ol", "_m"))
+  
+  data <-
+    data |>
+    filter(V1 %in% focal | V2 %in% focal)
+  
+  if(nrow(data) == 0){
+    NULL
+  }else{
+    data |>
+      correlation_network_plotter(
+        layout = "tree"
+        , focal = focal[2:3]
+        , directed = TRUE
+        , title = title
+        , curvature = 0.1
+      )
+  }
+}
+```
+
+```{r Plot CD with outlier indicators, include=FALSE}
+causal_diagram_ol_plot <-
+  o_directed_all |>
+  filter(str_detect(V1, "_ol$")) |>
+  pull(V1) |>
+  str_remove_all("_ol$")
+
+causal_diagram_ol_plot <-
+  causal_diagram_ol_plot |>
+  `names<-`(causal_diagram_ol_plot)
+
+causal_diagram_ol_plot <-
+  causal_diagram_ol_plot |>
+  imap(~ assess_ol(causal_diagram_ol_data, .x, .y))
+
+causal_diagram_ol_plot <-
+  causal_diagram_ol_plot[!sapply(causal_diagram_ol_plot, is.null)]
+
+causal_diagram_ol_plot <-
+  ggarrange(
+    plotlist = causal_diagram_ol_plot
+    , nrow = length(causal_diagram_ol_plot)
+  )
+```
+
+```{r CD with OL, echo=FALSE, fig.height=850/25.4, fig.width=190/25.4}
+causal_diagram_ol_plot
+```
+
+```{r Determine measurement errors, include=FALSE}
+measurement_error <-
+  read_csv("inst/extdata/measurement_error.csv", show_col_types = FALSE) |>
+  group_by(measurement_error) |>
+  summarise(values = list(variable)) |>
+  deframe()
+```
+
+### Missing value
+
+```{r Filter significant correlations of missingness indicators, include=FALSE}
+vcf_ms <- paste0(unique(c(vcf$V1, vcf$V2)), "_ms")
+
+correlations_ms <-
+  correlation_matrix$data |>
+  filter(sig == "Yes") |>
+  filter(V1 %in% vcf_ms | V2 %in% vcf_ms) |>
+  select(V1, V2)
+```
+
+```{r Determine causal direction with missingness indicators, include=FALSE}
+ms_directed <- olms_connection(correlations_ms, "_ms$")
+```
+
+```{r Determine ol-causal direction with measurement variables, include=FALSE}
+m_directed <-
+  data.frame(V1 = unique(ms_directed$V2)) |>
+  mutate(V2 = str_replace_all(V1, "_ms$", "_m"))
+
+m_directed <-
+  data.frame(
+    V1 = unique(c(causal_diagram_vcf_data$V1, causal_diagram_vcf_data$V2))
+  ) |>
+  mutate(V2 = paste0(V1, "_m")) |>
+  rbind(m_directed)
+```
+
+```{r Determine ol-causal direction of all with missingnesss, include=FALSE}
+m_directed_all <-
+  data.frame(V1 = colnames(train_data_olms)) |>
+  filter(str_detect(V1, "_ms$")) |>
+  mutate(V2 = str_replace_all(V1, "_ms$", "_m"))
+
+m_directed_all <-
+  m_directed_all |>
+  mutate(V1 = str_remove_all(V1, "_ms$")) |>
+  rbind(m_directed_all)
+```
+
+```{r Obtain CD data with missingness indicators, include=FALSE}
+causal_diagram_ms_data <-
+  causal_diagram_vcf_data |>
+  rbind(m_directed) |>
+  rbind(ms_directed) |>
+  rbind(m_directed_all) |>
+  unique()
+```
+
+```{r Create custom function to assess missingness by CD}
+assess_ms <- function(data, focal, title = NULL){
+  focal <- paste0(focal, c("", "_ms", "_m"))
+  
+  data <-
+    data |>
+    filter(V1 %in% focal | V2 %in% focal)
+  
+  if(nrow(data) == 0){
+    NULL
+  }else{
+    data |>
+      correlation_network_plotter(
+        layout = "tree"
+        , focal = focal[2:3]
+        , directed = TRUE
+        , title = title
+        , curvature = 0.1
+      )
+  }
+}
+```
+
+```{r Plot CD with missingness indicators, include=FALSE}
+causal_diagram_ms_plot <-
+  m_directed_all |>
+  filter(str_detect(V1, "_ms$")) |>
+  pull(V1) |>
+  str_remove_all("_ms$")
+
+causal_diagram_ms_plot <-
+  causal_diagram_ms_plot |>
+  `names<-`(causal_diagram_ms_plot)
+
+causal_diagram_ms_plot <-
+  causal_diagram_ms_plot |>
+  imap(~ assess_ms(causal_diagram_ms_data, .x, .y))
+
+causal_diagram_ms_plot <-
+  causal_diagram_ms_plot[!sapply(causal_diagram_ms_plot, is.null)]
+
+causal_diagram_ms_plot <-
+  ggarrange(
+    plotlist = causal_diagram_ms_plot
+    , nrow = length(causal_diagram_ms_plot)
+  )
+```
+
+```{r CD with MS, echo=FALSE, fig.height=250/25.4, fig.width=190/25.4}
+causal_diagram_ms_plot
+```
+
+```{r Determine mussing-value types, include=FALSE}
+missing_value <-
+  read_csv("inst/extdata/missing_value.csv", show_col_types = FALSE) |>
+  group_by(missing_value) |>
+  summarise(values = list(variable)) |>
+  deframe()
+```
+
+## Causation related to directed cyclic graph (DCG)
+
+```{r Obtain the remaining undirected non-VOIs, include=FALSE}
+nonvoi_undirected <-
+  correlations |>
+  filter(
+    V1 %in% c(vcf_directed$V1, vcf_directed$V2)
+    & V2 %in% c(vcf_directed$V1, vcf_directed$V2)
+  )
+
+nonvoi_undirected <-
+  nonvoi_undirected |>
+  anti_join(causal_diagram_vcf_data, by = join_by(V1, V2)) |>
+  anti_join(
+    select(causal_diagram_vcf_data, V1 = V2, V2 = V1)
+    , by = join_by(V1, V2)
+  ) |>
+  mutate(from = NA)
+```
+
+```{r Write the undirected non-VOIs to CSV, include=FALSE}
+write_csv(nonvoi_undirected, "inst/extdata/nonvoi_undirected.csv")
+```
+
+```{r Determine causal direction per pair related to non-VOIs, include=FALSE}
+nonvoi_directed <-
+  read_csv("inst/extdata/nonvoi_directed.csv", show_col_types = FALSE)
+```
+
+```{r Obtain causal diagram data from non-VOIs, include=FALSE}
+causal_diagram_nonvoi_data <-
+  nonvoi_directed |>
+  mutate(to = ifelse(from == 1, 2, 1)) |>
+  mutate(
+    from = ifelse(from == 1, V1, V2)
+    , to = ifelse(to == 1, V1, V2)
+  ) |>
+  select(V1 = from, V2 = to)
+```
+
+```{r Create custom function to find all cycles}
+find_all_cycles <- function(edges){
+  edges <-
+    edges |>
+    distinct(from, to) |>
+    filter(!is.na(from), !is.na(to))
+
+  nodes <- sort(unique(c(edges$from, edges$to)))
+  adj <- split(edges$to, edges$from)
+
+  cycles <- list()
+
+  canon_cycle <- function(path){
+    rots <- lapply(
+      seq_along(path),
+      \(i){
+        if(i == 1){
+          path
+        }else{
+          c(path[i:length(path)], path[1:(i - 1)])
+        }
+      }
+    )
+
+    keys <- vapply(
+      rots,
+      \(x) paste(x, collapse = "->"),
+      FUN.VALUE = character(1)
+    )
+
+    rots[[order(keys)[1]]]
+  }
+
+  dfs <- function(start, current, path, visited){
+    nbrs <- adj[[current]]
+
+    if(is.null(nbrs)){
+      return(invisible(NULL))
+    }
+
+    for(next_node in nbrs){
+      if(next_node == start && length(path) >= 2){
+        cyc <- canon_cycle(path)
+        cycles[[length(cycles) + 1]] <<- cyc
+      }else if(!(next_node %in% visited)){
+        dfs(
+          start = start
+          , current = next_node
+          , path = c(path, next_node)
+          , visited = c(visited, next_node)
+        )
+      }
+    }
+
+    invisible(NULL)
+  }
+
+  for(start in nodes){
+    dfs(
+      start = start
+      , current = start
+      , path = start
+      , visited = start
+    )
+  }
+
+  if(length(cycles) == 0){
+    return(list())
+  }
+
+  cycle_keys <- vapply(
+    cycles
+    , \(x) paste(x, collapse = "->")
+    , FUN.VALUE = character(1)
+  )
+
+  cycles <- cycles[!duplicated(cycle_keys)]
+
+  lapply(cycles, \(x) c(x, x[1]))
+}
+```
+
+```{r Create custom function to find all cycles with dataframe output}
+find_all_cycles_df <- function(edges){
+  cycs <- find_all_cycles(edges)
+
+  map2_dfr(
+    cycs
+    , seq_along(cycs)
+    , \(cyc, id){
+      tibble(
+        cycle_id = id
+        , step = seq_along(cyc)
+        , node = cyc
+      )
+    }
+  )
+}
+```
+
+```{r Find all cycles, include=FALSE}
+directed_cyclic_graph <-
+  causal_diagram_vcf_data |>
+  rbind(causal_diagram_nonvoi_data) |>
+  rename(from = V1, to = V2) |>
+  find_all_cycles_df()
+```
+
+```{r Create custom function to construct causal diagram per cycle}
+cycles_to_edge_list <- function(cycles_df){
+  cycles_df |>
+    dplyr::group_split(cycle_id) |>
+    purrr::map(\(df){
+      df |>
+        dplyr::arrange(step) |>
+        dplyr::mutate(
+          from = node,
+          to = dplyr::lead(node)
+        ) |>
+        dplyr::filter(!is.na(to)) |>
+        dplyr::select(from, to)
+    })
+}
+```
+
+```{r Causal diagram-formatted cycles, include=FALSE}
+causal_diagram_dcg_list <-
+  cycles_to_edge_list(directed_cyclic_graph) |>
+  lapply(rename, V1 = from, V2 = to) |>
+  `names<-`(paste0("dcg_", unique(directed_cyclic_graph$cycle_id)))
+```
+
+```{r Causal diagram-formatted cycle duplicates, include=FALSE}
+causal_diagram_dcg_duplicates <-
+  directed_cyclic_graph |>
+  group_by(cycle_id) |>
+  filter(duplicated(node)) |>
+  pull(node) |>
+  `names<-`(paste0("dcg_", unique(directed_cyclic_graph$cycle_id)))
+```
+
+```{r Plot causal diagram for DCG-related causation, include=FALSE}
+causal_diagram_dcg_plot <-
+  causal_diagram_dcg_list |>
+  imap(
+    ~ .x |>
+      correlation_network_plotter(
+        focal = causal_diagram_dcg_duplicates[[.y]]
+        , directed = TRUE, curvature = 0.1
+      )
+  )
+
+causal_diagram_dcg_plot <-
+  ggarrange(
+    plotlist = causal_diagram_dcg_plot
+    , nrow = length(causal_diagram_dcg_plot)
+  )
+```
+
+```{r CD for DCGs, echo=FALSE, fig.height=100/25.4, fig.width=190/25.4}
+causal_diagram_dcg_plot
+```
+
+```{r Caption CD for DCGs, echo=FALSE}
+show_figure_legend("causal_diagram_dcg_plot", "Causal diagram showing DGCs separately per duplicate.")
+```
+
+## Directional (d)-separation
+
+```{r Create custom function to get descendants of a variable}
+get_descendants <- function(var, edges){
+  g <-
+    igraph::graph_from_data_frame(
+      d = edges,
+      directed = TRUE
+    )
+  
+  vids <- igraph::V(g)[name == var]
+  
+  desc <-
+    igraph::subcomponent(
+      g,
+      vids,
+      mode = "out"
+    )
+  
+  igraph::V(g)$name[desc] |>
+    setdiff(var)
+}
+```
+
+```{r Identify collider-descendant confounders and mediators, include=FALSE}
+coldes_z <-
+  path$collider |>
+  lapply(
+    get_descendants
+    , rbind(causal_diagram_vcf_data, causal_diagram_nonvoi_data)
+  ) |>
+  reduce(c) |>
+  intersect(c(path$confounder, path$mediator))
+```
+
+```{r Plot causal diagram for coldes cfmed, include=FALSE}
+causal_diagram_coldes_z_plot <-
+  causal_diagram_vcf_data |>
+  rbind(causal_diagram_nonvoi_data) |>
+  correlation_network_plotter(
+    focal = coldes_z
+    , directed = TRUE
+    , curvature = 0.1
+  )
+```
+
+```{r CD for coldes cfmed, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4}
+causal_diagram_coldes_z_plot
+```
+
+```{r Caption CD for coldes cfmed, echo=FALSE}
+show_figure_legend("causal_diagram_coldes_z_plot", "Causal diagram collider-descendant confounders and mediators for VCF related to two VOIs.")
+```
+
+```{r Determine a set of variables that provide cond indep, include=FALSE}
+z_set <-
+  c(path$confounder, path$mediator) |>
+  setdiff(coldes_z)
+```
+
+```{r Determine formula between VOIs along with Z as covariates, include=FALSE}
+covariates <- c(path$causal, z_set)
+
+inference_formula <-
+  paste0("outcome", " ~ ", paste0(covariates, collapse = " + ")) |>
+  as.formula()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

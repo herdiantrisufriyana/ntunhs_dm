@@ -1,0 +1,16 @@
+V1,V2,from
+outcome,bmi,NA
+outcome,uta_pi_l,NA
+outcome,uta_bn,NA
+outcome,ga,NA
+outcome,bw,NA
+outcome,sflt1,NA
+outcome,plgf,NA
+outcome,sflt1_plgf,NA
+bmi,plgf,NA
+uta_pi_l,plgf,NA
+uta_bn,plgf,NA
+ga,plgf,NA
+bw,plgf,NA
+sflt1,plgf,NA
+plgf,sflt1_plgf,NA
