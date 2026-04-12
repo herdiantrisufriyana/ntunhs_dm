@@ -1,0 +1,749 @@
+V1,V2,V1_definition,V2_definition,prompt,response,answer
+outcome,bmi,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.","Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in bmi.
+
+         B. changing bmi causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         bmi: Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+outcome,uta_pi_l,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.","The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in uta_pi_l.
+
+         B. changing uta_pi_l causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+outcome,uta_bn,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.",The presence of bilateral notches in the uterine artery Doppler waveform.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in uta_bn.
+
+         B. changing uta_bn causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+outcome,ga,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.","Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in ga.
+
+         B. changing ga causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         ga: Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+outcome,bw,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.","Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in bw.
+
+         B. changing bw causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         bw: Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+outcome,sflt1,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.","Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in sflt1.
+
+         B. changing sflt1 causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+outcome,plgf,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.","Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in plgf.
+
+         B. changing plgf causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+outcome,sflt1_plgf,"Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby.",The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing outcome causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in outcome.
+
+
+         Definitions:
+
+         outcome: Preeclampsia is a serious blood pressure condition that develops during pregnancy, typically after 20 weeks. It is characterized by high blood pressure and often signs of damage to another organ system, most often the liver and kidneys. If left untreated, preeclampsia can lead to serious—even fatal—complications for both the mother and the baby..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bmi,plgf,"Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes.","Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bmi causes a change in plgf.
+
+         B. changing plgf causes a change in bmi.
+
+
+         Definitions:
+
+         bmi: Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes..
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_pi_l,plgf,"The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.","Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_pi_l causes a change in plgf.
+
+         B. changing plgf causes a change in uta_pi_l.
+
+
+         Definitions:
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_bn,plgf,The presence of bilateral notches in the uterine artery Doppler waveform.,"Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_bn causes a change in plgf.
+
+         B. changing plgf causes a change in uta_bn.
+
+
+         Definitions:
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+ga,plgf,"Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period.","Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing ga causes a change in plgf.
+
+         B. changing plgf causes a change in ga.
+
+
+         Definitions:
+
+         ga: Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period..
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bw,plgf,"Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health.","Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bw causes a change in plgf.
+
+         B. changing plgf causes a change in bw.
+
+
+         Definitions:
+
+         bw: Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health..
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+sflt1,plgf,"Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.","Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing sflt1 causes a change in plgf.
+
+         B. changing plgf causes a change in sflt1.
+
+
+         Definitions:
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+plgf,sflt1_plgf,"Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition.",The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing plgf causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in plgf.
+
+
+         Definitions:
+
+         plgf: Placental growth factor (PlGF) is a protein produced by the placenta that promotes the development of new blood vessels. In clinical practice, measuring maternal blood levels of PlGF helps predict and diagnose preeclampsia, as low levels indicate placental dysfunction and an increased risk of the condition..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bmi,uta_pi_l,"Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes.","The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bmi causes a change in uta_pi_l.
+
+         B. changing uta_pi_l causes a change in bmi.
+
+
+         Definitions:
+
+         bmi: Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes..
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bmi,uta_bn,"Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes.",The presence of bilateral notches in the uterine artery Doppler waveform.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bmi causes a change in uta_bn.
+
+         B. changing uta_bn causes a change in bmi.
+
+
+         Definitions:
+
+         bmi: Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes..
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bmi,sflt1,"Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes.","Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bmi causes a change in sflt1.
+
+         B. changing sflt1 causes a change in bmi.
+
+
+         Definitions:
+
+         bmi: Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes..
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bmi,sflt1_plgf,"Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes.",The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bmi causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in bmi.
+
+
+         Definitions:
+
+         bmi: Body mass index (BMI) is a medical screening tool that measures the ratio of a person's weight to their height to estimate body fat. It is calculated by dividing weight in kilograms by the square of height in meters. BMI is used to broadly categorize individuals as underweight, healthy weight, overweight, or obese, which can help assess risks for health conditions like heart disease and type 2 diabetes..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_pi_l,uta_bn,"The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.",The presence of bilateral notches in the uterine artery Doppler waveform.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_pi_l causes a change in uta_bn.
+
+         B. changing uta_bn causes a change in uta_pi_l.
+
+
+         Definitions:
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_pi_l,ga,"The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.","Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_pi_l causes a change in ga.
+
+         B. changing ga causes a change in uta_pi_l.
+
+
+         Definitions:
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+         ga: Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_pi_l,bw,"The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.","Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_pi_l causes a change in bw.
+
+         B. changing bw causes a change in uta_pi_l.
+
+
+         Definitions:
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+         bw: Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_pi_l,sflt1,"The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.","Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_pi_l causes a change in sflt1.
+
+         B. changing sflt1 causes a change in uta_pi_l.
+
+
+         Definitions:
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_pi_l,sflt1_plgf,"The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction.",The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_pi_l causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in uta_pi_l.
+
+
+         Definitions:
+
+         uta_pi_l: The variable uta_pi_l refers to the left uterine artery pulsatility index, a measure used in Doppler ultrasound to assess blood flow resistance in the left uterine artery. In the context of pregnancy, an elevated pulsatility index can indicate impaired placental perfusion and is often used as a marker to predict the risk of developing preeclampsia or fetal growth restriction..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_bn,ga,The presence of bilateral notches in the uterine artery Doppler waveform.,"Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_bn causes a change in ga.
+
+         B. changing ga causes a change in uta_bn.
+
+
+         Definitions:
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+         ga: Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_bn,bw,The presence of bilateral notches in the uterine artery Doppler waveform.,"Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_bn causes a change in bw.
+
+         B. changing bw causes a change in uta_bn.
+
+
+         Definitions:
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+         bw: Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_bn,sflt1,The presence of bilateral notches in the uterine artery Doppler waveform.,"Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_bn causes a change in sflt1.
+
+         B. changing sflt1 causes a change in uta_bn.
+
+
+         Definitions:
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+uta_bn,sflt1_plgf,The presence of bilateral notches in the uterine artery Doppler waveform.,The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing uta_bn causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in uta_bn.
+
+
+         Definitions:
+
+         uta_bn: The presence of bilateral notches in the uterine artery Doppler waveform..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+ga,bw,"Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period.","Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing ga causes a change in bw.
+
+         B. changing bw causes a change in ga.
+
+
+         Definitions:
+
+         ga: Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period..
+
+         bw: Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+ga,sflt1,"Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period.","Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing ga causes a change in sflt1.
+
+         B. changing sflt1 causes a change in ga.
+
+
+         Definitions:
+
+         ga: Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period..
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+ga,sflt1_plgf,"Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period.",The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing ga causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in ga.
+
+
+         Definitions:
+
+         ga: Gestational age refers to the length of time a pregnancy has lasted, typically measured in weeks from the first day of the person's last menstrual period..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bw,sflt1,"Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health.","Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.","You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bw causes a change in sflt1.
+
+         B. changing sflt1 causes a change in bw.
+
+
+         Definitions:
+
+         bw: Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health..
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+bw,sflt1_plgf,"Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health.",The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing bw causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in bw.
+
+
+         Definitions:
+
+         bw: Birth weight refers to the first weight of a newborn obtained after birth. In clinical studies, it is often used as a primary outcome measure to assess fetal growth and neonatal health..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA
+sflt1,sflt1_plgf,"Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features.",The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum.,"You are a helpful assistant for causal reasoning.
+
+
+         Which cause-and-effect relationship is more likely?
+
+         A. changing sflt1 causes a change in sflt1_plgf.
+
+         B. changing sflt1_plgf causes a change in sflt1.
+
+
+         Definitions:
+
+         sflt1: Soluble fms-like tyrosine kinase 1 (sFlt-1) is an antiangiogenic protein produced by the placenta that inhibits vascular endothelial growth factor (VEGF) and placental growth factor (PlGF). In cases of preeclampsia, sFlt-1 levels are significantly increased, leading to maternal endothelial dysfunction. The ratio of sFlt-1 to PlGF is used as a clinical biomarker to aid in the risk assessment and short-term prediction of preeclampsia with severe features..
+
+         sflt1_plgf: The sFlt-1/PlGF ratio is the ratio of soluble fms-like tyrosine kinase 1 to placental growth factor. It is a clinical biomarker used to predict the risk of developing preeclampsia and related adverse outcomes by identifying an imbalance between antiangiogenic and proangiogenic factors in maternal serum..
+
+
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.
+
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        ",NA,NA

@@ -1,0 +1,9 @@
+path,variable
+causal,plgf
+mediator,sflt1_plgf
+mediator,uta_bn
+confounder,bmi
+confounder,ga
+confounder,sflt1
+confounder,uta_pi_l
+collider,bw

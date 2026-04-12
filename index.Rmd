@@ -1521,10 +1521,6 @@ ps_data <-
   reduce(rbind) |>
   group_by(V1, V2) |>
   summarize(ps = sum(n == 0) > 0, .groups = "drop")
-
-# Temporarily add this if stan is not installable
-# |>
-#   mutate(ps = FALSE) 
 ```
 
 ## Correlation tests
@@ -3172,9 +3168,182 @@ inference_formula <-
   as.formula()
 ```
 
+# LLM-assisted causal discovery
 
+```{r Variables in VCF with empty definitions, include=FALSE}
+vcf_nonvoi_undirected <- rbind(vcf_undirected, nonvoi_undirected)
 
+vcf_var_undefined <-
+  data.frame(
+    variable = unique(c(vcf_nonvoi_undirected$V1, vcf_nonvoi_undirected$V2))
+  ) |>
+  mutate(definition = NA)
+```
 
+```{r Write variables in VCF with empty definitions, include=FALSE}
+write_csv(vcf_var_undefined, "inst/extdata/vcf_var_undefined.csv")
+```
+
+Prompt LLM to define variables, e.g.:
+
+=AI("Define this variable. Outcome is preeclampsia, GA is gestational age, suffices of _l/_r mean left and right.", A2)
+
+```{r Determine defition per varibels in VCF, include=FALSE}
+vcf_var_defined <-
+  read_csv("inst/extdata/vcf_var_defined.csv", show_col_types = FALSE)
+```
+
+```{r Create undirected VOIs with confounders for LLM-prompting, include=FALSE}
+vcf_prompt_unresponsed <-
+  vcf_nonvoi_undirected |>
+  select(-from) |>
+  left_join(
+    rename(vcf_var_defined, V1 = variable, V1_definition = definition)
+    , by = join_by(V1)
+  ) |>
+  left_join(
+    rename(vcf_var_defined, V2 = variable, V2_definition = definition)
+    , by = join_by(V2)
+  ) |>
+  mutate(
+    prompt =
+      paste0(
+        "You are a helpful assistant for causal reasoning.\n\n
+         Which cause-and-effect relationship is more likely?\n
+         A. changing ", V1," causes a change in ", V2,".\n
+         B. changing ", V2," causes a change in ", V1,".\n\n
+         Definitions:\n
+         ", V1,": ", V1_definition,".\n
+         ", V2,": ", V2_definition,".\n\n
+         Let's work this out in a step by step way to be sure that we have the 
+         right answer.\n
+         Then provide your final answer within the tags <Answer>A/B</Answer>.
+        "
+      )
+    , response = as.character(NA)
+    , answer = as.character(NA)
+  )
+```
+
+```{r Write the undirected VOIs to CSV for LLM-prompting, include=FALSE}
+write_csv(vcf_prompt_unresponsed, "inst/extdata/vcf_prompt_unresponsed.csv")
+```
+
+Prompt LLM to extract answer from response, e.g.:
+
+=AI("Extract only the answer.", F2)
+
+```{r Get LLM responses for determining causal direction, include=FALSE}
+vcf_prompt_responsed <-
+  read_csv("inst/extdata/vcf_prompt_responsed.csv", show_col_types = FALSE)
+```
+
+```{r Determine causal direction using LLM responses, include=FALSE}
+vcf_directed_llm <-
+  vcf_prompt_responsed |>
+  mutate(from = ifelse(answer == "A", 1, 2)) |>
+  select(V1, V2, from)
+
+nonvoi_directed_llm <-
+  vcf_directed_llm |>
+  inner_join(select(nonvoi_undirected, -from), by = join_by(V1, V2))
+
+vcf_directed_llm <-
+  vcf_directed_llm |>
+  inner_join(select(vcf_undirected, -from), by = join_by(V1, V2))
+```
+
+```{r Obtain causal diagram data from VCF-LLM, include=FALSE}
+causal_diagram_vcf_llm_data <-
+  vcf_directed_llm |>
+  mutate(to = ifelse(from == 1, 2, 1)) |>
+  mutate(
+    from = ifelse(from == 1, V1, V2)
+    , to = ifelse(to == 1, V1, V2)
+  ) |>
+  select(V1 = from, V2 = to)
+```
+
+```{r Plot causal diagram for VCF-LLM, include=FALSE}
+causal_diagram_vcf_llm_plot <-
+  causal_diagram_vcf_llm_data |>
+  correlation_network_plotter(
+    "tree"
+    , focal = c("outcome", voi2)
+    , directed = TRUE
+  )
+```
+
+```{r CD for VCF-LLM, echo=FALSE, fig.height=50/25.4, fig.width=190/25.4}
+causal_diagram_vcf_llm_plot
+```
+
+```{r Caption CD for VCF, echo=FALSE}
+show_figure_legend("causal_diagram_vcf_llm_plot", "Causal diagram for VCF based on LLM related to two VOIs without showing edges among non-VOI variables.")
+```
+
+```{r Determine path of 2 VOIs based on LLM, include=FALSE}
+path_llm <-
+  read_csv("inst/extdata/path_llm.csv", show_col_types = FALSE) |>
+  group_by(path) |>
+  summarise(values = list(variable)) |>
+  deframe()
+```
+
+```{r Obtain causal diagram data from non-VOIs -LLM, include=FALSE}
+causal_diagram_nonvoi_llm_data <-
+  nonvoi_directed_llm |>
+  mutate(to = ifelse(from == 1, 2, 1)) |>
+  mutate(
+    from = ifelse(from == 1, V1, V2)
+    , to = ifelse(to == 1, V1, V2)
+  ) |>
+  select(V1 = from, V2 = to)
+```
+
+```{r Identify col-des confounders and mediators by LLM, include=FALSE}
+coldes_z_llm <-
+  path_llm$collider |>
+  lapply(
+    get_descendants
+    , rbind(causal_diagram_vcf_llm_data, causal_diagram_nonvoi_llm_data)
+  ) |>
+  reduce(c) |>
+  intersect(c(path_llm$confounder, path_llm$mediator))
+```
+
+```{r Plot causal diagram for coldes cfmed by LLM, include=FALSE}
+causal_diagram_coldes_z_llm_plot <-
+  causal_diagram_vcf_llm_data |>
+  rbind(causal_diagram_nonvoi_llm_data) |>
+  correlation_network_plotter(
+    focal = coldes_z_llm
+    , directed = TRUE
+    , curvature = 0.1
+  )
+```
+
+```{r CD for coldes cfm LLM, echo=FALSE, fig.height=90/25.4, fig.width=190/25.4}
+causal_diagram_coldes_z_llm_plot
+```
+
+```{r Caption CD for coldes cfmed LLM, echo=FALSE}
+show_figure_legend("causal_diagram_coldes_z_llm_plot", "Causal diagram collider-descendant confounders and mediators for VCF based on LLM related to two VOIs.")
+```
+
+```{r Determine a set of vars that provide cond indep by LLM, include=FALSE}
+z_llm_set <-
+  c(path_llm$confounder, path_llm$mediator) |>
+  setdiff(coldes_z_llm)
+```
+
+```{r Determine formula between VOIs with Z as covariates by LLM, include=FALSE}
+covariates_llm <- c(path_llm$causal, z_llm_set)
+
+inference_llm_formula <-
+  paste0("outcome", " ~ ", paste0(covariates_llm, collapse = " + ")) |>
+  as.formula()
+```
 
 
 
