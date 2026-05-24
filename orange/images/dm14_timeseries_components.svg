@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" font-family="Arial,sans-serif" font-size="12">
+  <rect width="700" height="320" fill="#fafafa" rx="6"/>
+
+  <!-- Axes -->
+  <line x1="60" y1="260" x2="660" y2="260" stroke="#999" stroke-width="1"/>
+  <line x1="60" y1="20" x2="60" y2="260" stroke="#999" stroke-width="1"/>
+  <text x="360" y="295" text-anchor="middle" fill="#555" font-size="13">Time</text>
+  <text x="20" y="140" text-anchor="middle" fill="#555" font-size="13" transform="rotate(-90,20,140)">Value</text>
+
+  <!-- Trend line (dashed) -->
+  <line x1="80" y1="220" x2="640" y2="100" stroke="#1565c0" stroke-width="2" stroke-dasharray="8,4"/>
+  <text x="645" y="96" fill="#1565c0" font-weight="bold" font-size="11">Trend</text>
+
+  <!-- Seasonal wave on top of trend -->
+  <path d="M80,220 Q110,185 140,210 Q170,235 200,200 Q230,165 260,190 Q290,215 320,175 Q350,135 380,165 Q410,195 440,150 Q470,105 500,140 Q530,175 560,125 Q590,75 620,115"
+        stroke="#e65100" stroke-width="2.5" fill="none"/>
+  <text x="625" y="118" fill="#e65100" font-weight="bold" font-size="11">Observed</text>
+
+  <!-- Amplitude annotation (first cycle) -->
+  <line x1="140" y1="210" x2="140" y2="185" stroke="#888" stroke-width="0.5" stroke-dasharray="3,2"/>
+  <line x1="110" y1="185" x2="110" y2="210" stroke="#888" stroke-width="0.5" stroke-dasharray="3,2"/>
+  <!-- Small amplitude bracket -->
+  <line x1="95" y1="185" x2="95" y2="235" stroke="#d32f2f" stroke-width="1.5"/>
+  <line x1="91" y1="185" x2="99" y2="185" stroke="#d32f2f" stroke-width="1.5"/>
+  <line x1="91" y1="235" x2="99" y2="235" stroke="#d32f2f" stroke-width="1.5"/>
+  <text x="82" y="213" text-anchor="end" fill="#d32f2f" font-weight="bold" font-size="10">Amplitude</text>
+  <text x="82" y="224" text-anchor="end" fill="#d32f2f" font-size="9">(small)</text>
+
+  <!-- Large amplitude bracket (later cycle) -->
+  <line x1="555" y1="75" x2="555" y2="175" stroke="#d32f2f" stroke-width="1.5"/>
+  <line x1="551" y1="75" x2="559" y2="75" stroke="#d32f2f" stroke-width="1.5"/>
+  <line x1="551" y1="175" x2="559" y2="175" stroke="#d32f2f" stroke-width="1.5"/>
+  <text x="545" y="122" text-anchor="end" fill="#d32f2f" font-weight="bold" font-size="10">Amplitude</text>
+  <text x="545" y="133" text-anchor="end" fill="#d32f2f" font-size="9">(large)</text>
+
+  <!-- Full cycle annotation -->
+  <line x1="80" y1="275" x2="200" y2="275" stroke="#2e7d32" stroke-width="2"/>
+  <line x1="80" y1="270" x2="80" y2="280" stroke="#2e7d32" stroke-width="2"/>
+  <line x1="200" y1="270" x2="200" y2="280" stroke="#2e7d32" stroke-width="2"/>
+  <text x="140" y="310" text-anchor="middle" fill="#2e7d32" font-weight="bold" font-size="11">1 full cycle</text>
+  <text x="140" y="286" text-anchor="middle" fill="#2e7d32" font-size="10">(season period)</text>
+
+  <!-- Growing amplitude note -->
+  <text x="360" y="45" text-anchor="middle" fill="#555" font-size="11" font-style="italic">Amplitude grows with trend → multiplicative model</text>
+  <text x="360" y="60" text-anchor="middle" fill="#555" font-size="11" font-style="italic">Amplitude stays constant → additive model</text>
+</svg>
