@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DM Exam — Type 2 Diabetes Prediction</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
+.header{background:#c0392b;color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.header .title{font-size:14px;text-align:right;line-height:1.3}
+.header .title span{display:block;font-weight:700}
+.progress{display:flex;gap:4px;align-items:center;justify-content:center;flex:1}
+.dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.3);transition:background 0.3s}
+.dot.done{background:#fff}
+.dot.current{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.5)}
+.prompt-bar{text-align:center;color:#fff;font-size:13px;background:#c0392b;padding:0 0 10px;font-weight:500}
+.container{max-width:800px;margin:0 auto;padding:40px 24px 120px;min-height:80vh}
+.question{display:none}
+.question.active{display:block}
+.q-text{font-size:17px;line-height:1.6;margin-bottom:20px}
+.q-text strong{color:#c0392b}
+.q-text p{margin-bottom:10px}
+.hint-box{background:#f0f4f8;border-left:4px solid #3498db;padding:10px 16px;margin:0 0 20px;font-size:13px;color:#555;line-height:1.5;border-radius:0 4px 4px 0}
+.options{display:flex;flex-direction:column;gap:10px;max-width:600px;margin:0 auto}
+.option{background:#fff;border:1px solid #ddd;border-radius:6px;padding:16px 20px;cursor:pointer;font-size:15px;transition:all 0.2s;user-select:none}
+.option:hover{border-color:#999;background:#fafafa}
+.option.selected{background:#1a8a7d;color:#fff;border-color:#1a8a7d}
+.option.wrong{background:#e74c3c;color:#fff;border-color:#e74c3c}
+.option.faded{opacity:0.4;pointer-events:none}
+.option.disabled{pointer-events:none}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:600px;margin:0 auto}
+.btn-continue{position:fixed;bottom:24px;right:24px;background:#27ae60;color:#fff;border:none;padding:14px 28px;font-size:15px;font-weight:700;border-radius:6px;cursor:pointer;display:none;z-index:99;letter-spacing:0.5px}
+.btn-continue:hover{background:#219a52}
+.btn-continue.visible{display:block}
+.toast{position:fixed;bottom:80px;right:24px;background:#1a8a7d;color:#fff;padding:14px 20px;border-radius:8px;font-size:14px;display:none;max-width:350px;z-index:100;line-height:1.4}
+.toast.visible{display:block}
+.carousel-wrap{display:flex;align-items:center;justify-content:center;gap:12px;margin:20px auto}
+.carousel-arrow{font-size:28px;color:#999;cursor:pointer;user-select:none;padding:8px;min-width:32px;text-align:center}
+.carousel-arrow:hover{color:#333}
+.carousel-arrow.disabled{color:#ddd;cursor:default}
+.card-stack{background:#fdf6e3;border-radius:8px;padding:24px;max-width:500px;flex:1;min-height:100px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.binary-buttons{display:flex;gap:12px;justify-content:center;margin-top:16px}
+.binary-btn{background:#8e44ad;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600;min-width:140px}
+.binary-btn:hover{opacity:0.9}
+.binary-btn.correct-btn{background:#1a8a7d}
+.binary-btn.wrong-btn{background:#e74c3c}
+.binary-btn:disabled{opacity:0.4;cursor:default;pointer-events:none}
+.match-table{width:100%;max-width:600px;margin:0 auto;border-collapse:separate;border-spacing:0 6px}
+.match-table td{padding:12px 16px;font-size:14px;border-radius:4px}
+.match-table .match-left{background:#1a8a7d;color:#fff;width:30%;font-weight:600}
+.match-table .match-right{background:#e0f2f1;cursor:pointer;transition:all 0.2s}
+.match-table .match-right:hover{background:#b2dfdb}
+.match-table .match-right.locked{background:#1a8a7d;color:#fff;pointer-events:none}
+.match-table .match-left.highlight{box-shadow:0 0 0 3px #f39c12}
+.fill-eq{background:#f5f5f5;border-radius:8px;padding:16px;margin-bottom:16px;font-size:16px;line-height:2}
+.fill-blank{display:inline-block;min-width:100px;border-bottom:3px solid #ccc;padding:0 8px;text-align:center;color:#999}
+.fill-blank.active-fb{border-bottom-color:#c0392b;color:#c0392b;animation:pulse-blank 1.5s infinite}
+.fill-blank.filled-fb{border-bottom-color:#1a8a7d;color:#1a8a7d;font-weight:700}
+@keyframes pulse-blank{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,0.3)}50%{box-shadow:0 0 0 6px rgba(192,57,43,0)}}
+.result-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+.result-table th,.result-table td{border:1px solid #ddd;padding:8px 12px;text-align:left}
+.result-table th{background:#333;color:#fff;font-weight:600}
+.result-table tr:nth-child(even){background:#fafafa}
+.dag{text-align:center;margin:16px 0}
+.dag svg{max-width:100%}
+.results-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;justify-content:center;align-items:center}
+.results-overlay.visible{display:flex}
+.results-card{background:#fff;border-radius:12px;padding:40px;text-align:center;max-width:400px;width:90%}
+.results-card h2{font-size:22px;margin-bottom:4px}
+.results-card h3{font-size:16px;color:#c0392b;margin-bottom:24px;font-weight:700}
+.results-circles{display:flex;justify-content:center;gap:40px;margin:20px 0 24px}
+.circle-stat{text-align:center}
+.circle-stat .label{font-size:12px;color:#999;margin-top:6px}
+.circle-ring{width:80px;height:80px;position:relative}
+.circle-ring svg{transform:rotate(-90deg)}
+.circle-ring .value{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:700}
+.btn-finish{background:#27ae60;color:#fff;border:none;padding:14px 40px;font-size:15px;font-weight:700;border-radius:6px;cursor:pointer;width:100%}
+</style>
+</head>
+<body>
+<div class="header">
+<span></span>
+<div class="progress" id="progressBar"></div>
+<div class="title"><span>DM EXAM</span>Type 2 Diabetes Prediction</div>
+</div>
+<div class="prompt-bar" id="promptBar"></div>
+<div class="container" id="loginScreen" style="text-align:center;padding-top:80px">
+<h2 style="margin-bottom:8px">Data Mining Exam</h2>
+<p style="color:#666;margin-bottom:32px">Type 2 Diabetes Prediction — Open-book | Scenario-based</p>
+<input type="text" id="studentName" placeholder="Enter your full name" style="font-size:16px;padding:12px 20px;border:2px solid #ccc;border-radius:6px;width:300px;text-align:center;outline:none;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">
+<input type="text" id="studentId" placeholder="Enter your student ID" style="font-size:16px;padding:12px 20px;border:2px solid #ccc;border-radius:6px;width:300px;text-align:center;outline:none;margin-bottom:24px;display:block;margin-left:auto;margin-right:auto">
+<button onclick="startExam()" style="background:#27ae60;color:#fff;border:none;padding:14px 40px;font-size:16px;font-weight:700;border-radius:6px;cursor:pointer">START</button>
+</div>
+<div class="container" id="questionContainer" style="display:none"></div>
+<button class="btn-continue" id="btnContinue" onclick="nextQuestion()">CONTINUE</button>
+<div class="toast" id="toast"></div>
+<div class="results-overlay" id="resultsOverlay">
+<div class="results-card">
+<h2>EXAM COMPLETE</h2>
+<h3>TYPE 2 DIABETES PREDICTION</h3>
+<div class="results-circles">
+<div class="circle-stat"><div class="circle-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="#eee" stroke-width="3"/><circle id="timeCircle" cx="18" cy="18" r="16" fill="none" stroke="#3498db" stroke-width="3" stroke-dasharray="100 100" stroke-linecap="round"/></svg><div class="value" id="timeValue">0:00</div></div><div class="label">TOTAL TIME</div></div>
+<div class="circle-stat"><div class="circle-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="#eee" stroke-width="3"/><circle id="scoreCircle" cx="18" cy="18" r="16" fill="none" stroke="#f39c12" stroke-width="3" stroke-dasharray="0 100" stroke-linecap="round"/></svg><div class="value" id="scoreValue">0/0</div></div><div class="label">SCORE</div></div>
+</div>
+<p id="studentLabel" style="font-size:13px;color:#666;margin-bottom:4px"></p>
+<button class="btn-finish" onclick="saveHTML()" style="margin-bottom:8px">Save &amp; Download HTML</button>
+<button class="btn-finish" onclick="location.reload()" style="background:#999">Try Again</button>
+</div>
+<div id="answerLog" style="display:none"></div>
+</div>
+
+<script>
+const questions=[
+// Q0: Bridge — Scenario
+{type:'context',prompt:'',text:'<p>Welcome to the Data Mining exam.</p><p>You are a data analyst at a metabolic health clinic. Your team collected data from <strong>250 patients</strong> in a metabolic health screening program. The dataset includes:</p><p><strong>Numerical:</strong> age (years), BMI (kg/m\u00b2), fasting glucose (mg/dL), HbA1c (%), triglycerides (mg/dL), waist circumference (cm), sleep duration (hours)</p><p><strong>Categorical:</strong> sex (male/female), exercise frequency (never/sometimes/often), diet quality score (poor/fair/good), type 2 diabetes (yes/no)</p><p>Your goal is to discover which factors are associated with type 2 diabetes and test the hypothesis using a structured data mining workflow.</p>'},
+// Q1: MC — Variable type
+{type:'mc',prompt:'Select an answer',text:'The variable "exercise frequency" has three categories: never, sometimes, often. What type of variable is this?',options:['Ratio','Interval','Nominal','Ordinal'],correct:3,explanation:'Exercise frequency (never < sometimes < often) has a natural order, making it ordinal. Nominal variables have no inherent order (e.g., blood type A/B/O).',points:1},
+// Q2: MC — Data splitting
+{type:'mc',prompt:'Select an answer',text:'You split the dataset into a hypothesis generation set (20%) and a hypothesis testing set (80%). Why do you use separate partitions?',options:['To ensure equal numbers of diabetic and non-diabetic patients','To remove outliers from the analysis','To avoid testing a hypothesis on the same data used to generate it','To make the analysis run faster'],correct:2,explanation:'Using the same data to both generate and test a hypothesis inflates the chance of false discoveries.',points:1},
+// Q3: MC — Histogram interpretation
+{type:'mc',prompt:'Select an answer',text:'You examine a histogram of fasting glucose split by diabetes status. The histogram for diabetic patients is shifted to the right compared to non-diabetic patients. What does this suggest?',options:['Fasting glucose and diabetes are not related','Fasting glucose causes diabetes','The data has too many outliers to interpret','Diabetic patients tend to have higher fasting glucose values'],correct:3,explanation:'A rightward shift means the diabetic group has higher fasting glucose values on average. This is an observation, not proof of causation.',points:1},
+// Q4: Match order — Visualization
+{type:'match_order',prompt:'Match each use case with the best visualization',text:'Match each use case with the best visualization type:',labels:['Identify outliers and compare medians between two groups','Show relationship between two numeric variables','Show frequency of categories within another category'],answers:['Box plot / Violin plot','Scatter plot','Stacked bar chart'],shuffled:['Scatter plot','Stacked bar chart','Box plot / Violin plot'],points:3},
+// Q5: MC — PCA interpretation
+{type:'mc',prompt:'Select an answer',text:'You perform PCA on the hypothesis generation set and plot PC1 vs PC2, colored by diabetes status. The two groups form two distinct clusters with minimal overlap. What does this suggest?',options:['The data has too few samples for PCA','Diabetes definitely can be predicted with 100% accuracy','The predictors collectively contain information that separates diabetic from non-diabetic patients','PCA failed and should be redone with more components'],correct:2,explanation:'When outcome groups form distinct clusters in PCA space, the predictors collectively contain separating information. This does not guarantee perfect prediction.',points:1},
+// Q6: Binary sort — True/False causality
+{type:'binary',prompt:'Classify each statement',text:'Classify each statement about correlation and causation as TRUE or FALSE:',cards:[{text:'A significant correlation between sleep duration and diabetes proves that poor sleep causes diabetes.',answer:1},{text:'Two variables can be correlated because they share a common cause (confounder).',answer:0},{text:'If the correlation between X and Y reverses after adjusting for a third variable, this is called Simpson\u2019s paradox.',answer:0},{text:'Correlation analysis alone is sufficient to determine which variables to adjust for in regression.',answer:1}],categories:['TRUE','FALSE'],points:4},
+// Q7: MC — Causal graph
+{type:'mc',prompt:'Select an answer',text:'In your correlation matrix, you find that both exercise frequency and waist circumference are significantly correlated with diabetes (FDR \u2264 0.05). You also find that exercise frequency and waist circumference are significantly correlated with each other. What should you do next?',options:['Conclude that lack of exercise causes large waist circumference','Run regression with both variables immediately','Remove one of the two variables from the analysis','Draw a causal graph to determine whether one is a confounder, mediator, or collider'],correct:3,explanation:'When two variables are both correlated with the outcome and with each other, a causal graph is needed to determine the correct adjustment strategy.',points:1},
+// Q8: Bridge — DAG
+{type:'context',prompt:'',text:'<p>Based on domain knowledge, your team draws the following causal graph for the relationship between <strong>waist circumference</strong> (exposure) and <strong>type 2 diabetes</strong> (outcome):</p><div class="dag"><svg viewBox="0 0 620 320" width="580" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,system-ui,sans-serif" font-size="13"><defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#555"/></marker></defs><rect x="20" y="120" width="110" height="36" rx="6" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/><text x="75" y="143" text-anchor="middle" fill="#1565c0" font-weight="600">Age</text><rect x="20" y="200" width="110" height="36" rx="6" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/><text x="75" y="223" text-anchor="middle" fill="#1565c0" font-weight="600">Sex</text><rect x="190" y="30" width="160" height="36" rx="6" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/><text x="270" y="53" text-anchor="middle" fill="#e65100" font-weight="600">Waist circumference</text><rect x="190" y="160" width="160" height="36" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/><text x="270" y="183" text-anchor="middle" fill="#2e7d32" font-weight="600">Fasting glucose</text><rect x="430" y="100" width="150" height="36" rx="6" fill="#fce4ec" stroke="#c62828" stroke-width="1.5"/><text x="505" y="123" text-anchor="middle" fill="#c62828" font-weight="600">Type 2 diabetes</text><rect x="430" y="240" width="150" height="36" rx="6" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1.5"/><text x="505" y="263" text-anchor="middle" fill="#7b1fa2" font-weight="600">Medication use</text><line x1="130" y1="138" x2="188" y2="55" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="130" y1="138" x2="428" y2="115" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="130" y1="218" x2="188" y2="55" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="130" y1="218" x2="428" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="350" y1="48" x2="428" y2="108" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="300" y1="66" x2="280" y2="158" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="350" y1="178" x2="428" y2="125" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="350" y1="55" x2="470" y2="238" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><line x1="505" y1="136" x2="505" y2="238" stroke="#555" stroke-width="1.5" marker-end="url(#ah)"/><text x="75" y="110" text-anchor="middle" fill="#1565c0" font-size="11" font-style="italic">confounder</text><text x="75" y="250" text-anchor="middle" fill="#1565c0" font-size="11" font-style="italic">confounder</text><text x="270" y="200" text-anchor="middle" fill="#2e7d32" font-size="11" font-style="italic">mediator</text><text x="505" y="285" text-anchor="middle" fill="#7b1fa2" font-size="11" font-style="italic">collider</text></svg></div><p><strong>Roles:</strong> Age and Sex are <strong>confounders</strong> (common causes of exposure and outcome). Fasting glucose is a <strong>mediator</strong> (on the causal path). Medication use is a <strong>collider</strong> (common effect of exposure and outcome).</p><p>Use this causal graph for the next two questions.</p>'},
+// Q9: Multi-select — Which variables to adjust for total effect
+{type:'multi',prompt:'Select multiple answers',text:'Using the causal graph, which variables should be included as covariates in the regression for estimating the <strong>total effect</strong> of waist circumference on type 2 diabetes?<br><br>Diabetes ~ Waist circumference + ?',hint:'<svg viewBox="0 0 620 320" width="480" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,system-ui,sans-serif" font-size="13"><defs><marker id="ahh" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#555"/></marker></defs><rect x="20" y="120" width="110" height="36" rx="6" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/><text x="75" y="143" text-anchor="middle" fill="#1565c0" font-weight="600">Age</text><rect x="20" y="200" width="110" height="36" rx="6" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/><text x="75" y="223" text-anchor="middle" fill="#1565c0" font-weight="600">Sex</text><rect x="190" y="30" width="160" height="36" rx="6" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/><text x="270" y="53" text-anchor="middle" fill="#e65100" font-weight="600">Waist circumference</text><rect x="190" y="160" width="160" height="36" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/><text x="270" y="183" text-anchor="middle" fill="#2e7d32" font-weight="600">Fasting glucose</text><rect x="430" y="100" width="150" height="36" rx="6" fill="#fce4ec" stroke="#c62828" stroke-width="1.5"/><text x="505" y="123" text-anchor="middle" fill="#c62828" font-weight="600">Type 2 diabetes</text><rect x="430" y="240" width="150" height="36" rx="6" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1.5"/><text x="505" y="263" text-anchor="middle" fill="#7b1fa2" font-weight="600">Medication use</text><line x1="130" y1="138" x2="188" y2="55" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="130" y1="138" x2="428" y2="115" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="130" y1="218" x2="188" y2="55" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="130" y1="218" x2="428" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="350" y1="48" x2="428" y2="108" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="300" y1="66" x2="280" y2="158" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="350" y1="178" x2="428" y2="125" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="350" y1="55" x2="470" y2="238" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><line x1="505" y1="136" x2="505" y2="238" stroke="#555" stroke-width="1.5" marker-end="url(#ahh)"/><text x="75" y="110" text-anchor="middle" fill="#1565c0" font-size="11" font-style="italic">confounder</text><text x="75" y="250" text-anchor="middle" fill="#1565c0" font-size="11" font-style="italic">confounder</text><text x="270" y="200" text-anchor="middle" fill="#2e7d32" font-size="11" font-style="italic">mediator</text><text x="505" y="285" text-anchor="middle" fill="#7b1fa2" font-size="11" font-style="italic">collider</text></svg>',options:['Age','Sex','Fasting glucose','Medication use'],correct:[0,1],explanation:'Adjust for confounders (Age, Sex) to block backdoor paths. Do NOT adjust for the mediator (Fasting glucose) or the collider (Medication use).',points:2},
+// Q10: MC — Collider bias
+{type:'mc',prompt:'Select an answer',text:'What happens if you adjust for the collider (Medication use) in your regression?',options:['It has no effect on the results','It introduces a spurious association between waist circumference and diabetes','It removes confounding bias','It blocks the causal path from waist circumference to diabetes'],correct:1,explanation:'Adjusting for a collider opens a path that was previously blocked, creating a spurious association. Colliders block paths when unadjusted; adjusting opens them.',points:1},
+// Q11: MC — Fairness
+{type:'mc',prompt:'Select an answer',text:'In your dataset, "sex" is a protected attribute. Your causal graph shows: Sex \u2192 Waist circumference \u2192 Diabetes, and Sex \u2192 Diabetes (direct path). A policy requires that your prediction model does not discriminate by sex. Which approach is most appropriate?',options:['Replace sex with a proxy variable like height','Remove sex from the dataset entirely','Assess whether the causal path through sex reflects biological differences vs. social discrimination, and document the decision','Keep sex in the model because it improves prediction accuracy'],correct:2,explanation:'Simply removing a protected attribute does not eliminate discrimination (proxies may still carry the signal). Assess whether causal pathways reflect legitimate differences or discriminatory processes.',points:1},
+// Q12: Multi-select — Protected attributes
+{type:'multi',prompt:'Select multiple answers',text:'Which of the following are concerns related to protected attributes in data mining?',options:['Removing a protected attribute guarantees fairness','A model trained on biased historical data may perpetuate discrimination','Protected attributes should always be excluded from causal graphs','Proxy variables can carry discriminatory information even when the protected attribute is excluded','Fairness requires documenting how protected attributes were handled'],correct:[1,3,4],explanation:'Removing a protected attribute does not guarantee fairness because proxies can carry the signal. Historical data may embed biases. Transparency requires documentation.',points:3},
+// Q13: MC — Sample size
+{type:'mc',prompt:'Select an answer',text:'Your sample has 250 patients, and your causal graph identifies 20 confounders that should be adjusted. The rule of thumb requires 10\u201320 events per variable. What should you do?',options:['Increase the sample size by duplicating rows','Use stepwise selection to pick the most significant confounders','Run the regression with all 20 confounders anyway','Group correlated confounders using hierarchical clustering and combine each group with PCA before regression'],correct:3,explanation:'Ontology-guided dimensional reduction (hierarchical clustering + PCA) reduces predictors while preserving information. Stepwise selection is not appropriate because covariate selection should be guided by the causal graph.',points:1},
+// Q14: Bridge — Regression results
+{type:'context',prompt:'',text:'<p>Your logistic regression results are shown below:</p><table class="result-table"><tr><th>Model</th><th>Predictor</th><th>OR</th><th>95% CI</th><th>p-value</th></tr><tr><td>Univariate</td><td>Waist circumference</td><td>2.10</td><td>(1.35, 3.27)</td><td>0.001</td></tr><tr><td>Multivariate</td><td>Waist circumference</td><td>1.30</td><td>(0.78, 2.17)</td><td>0.31</td></tr><tr><td>Multivariate</td><td>Age</td><td>1.04</td><td>(1.01, 1.07)</td><td>0.008</td></tr><tr><td>Multivariate</td><td>Sex (male)</td><td>1.75</td><td>(1.05, 2.92)</td><td>0.032</td></tr></table><p>Use these results for the next three questions.</p>'},
+// Q15: Fill blank — Interpret OR
+{type:'fill_blank_sentence',prompt:'Select an answer for each blank',text:'Interpret the univariate result for waist circumference:',hint:'OR = odds ratio. OR \u2212 1 = percentage change in odds. CI excluding 1.0 = statistically significant.',sentences:['The unadjusted odds ratio of 2.10 means that for each unit increase in waist circumference, the odds of diabetes increase by _blank_. The 95% CI (1.35, 3.27) _blank_ 1.0, so the result is _blank_ at \u03b1 = 0.05.'],blanks:[[{text:'110%',correct:true},{text:'210%',correct:false},{text:'2.10%',correct:false}],[{text:'excludes',correct:true},{text:'includes',correct:false}],[{text:'statistically significant',correct:true},{text:'not statistically significant',correct:false}]],points:3},
+// Q16: MC — Confounding attenuation
+{type:'mc',prompt:'Select an answer',text:'In the multivariate model, the OR for waist circumference changed from 2.10 (unadjusted) to 1.30 (adjusted), and the p-value changed from 0.001 to 0.31. What is the most likely explanation?',options:['The multivariate model is always worse than the univariate model','The sample size is too small for any analysis','The data was entered incorrectly','Confounders (Age and Sex) partially explained the association between waist circumference and diabetes'],correct:3,explanation:'The attenuation of the OR toward 1.0 and the loss of significance after adjusting for confounders suggests that Age and Sex partially explained (confounded) the crude association.',points:1},
+// Q17: MC — Per-unit interpretation
+{type:'mc',prompt:'Select an answer',text:'The multivariate OR for Age is 1.04 (95% CI: 1.01\u20131.07, p = 0.008). A colleague says: "Age has a tiny effect (only 1.04), so it is not important." How would you respond?',options:['The p-value is small, so the effect must be large','Agree \u2014 the effect is too small to matter','The OR of 1.04 is per year of age; over a 25-year difference, the cumulative effect is substantial (1.04\u00b2\u2075 \u2248 2.67). A small per-unit effect can accumulate to be clinically meaningful.','Age should be removed from the model'],correct:2,explanation:'The OR is per unit (per year). Over 25 years, the cumulative OR is approximately 1.04\u00b2\u2075 \u2248 2.67, which is clinically meaningful.',points:1},
+// Q18: Multi-select — Biases
+{type:'multi',prompt:'Select multiple answers',text:'Which of the following are potential biases or limitations of your analysis?',options:['Using the same 20% partition for hypothesis generation and testing','The causal graph was constructed using domain knowledge, which may be incorrect','The correlation matrix used FDR correction, which eliminates all bias','Missing values coded as MNAR can bias the results','Unmeasured confounders may still bias the adjusted estimate'],correct:[1,3,4],explanation:'Causal graphs rely on assumptions. MNAR missing data can bias estimates. Unmeasured confounders are always a limitation. FDR correction addresses multiple testing, not confounding.',points:3},
+// Q19: MC — Cross-sectional limitation
+{type:'mc',prompt:'Select an answer',text:'Your analysis used a cross-sectional dataset (all variables measured at one time point). Which limitation does this introduce?',options:['Logistic regression cannot be used with cross-sectional data','PCA cannot be applied to cross-sectional data','You cannot determine the temporal direction of causation between exposure and outcome','The sample size is automatically too small'],correct:2,explanation:'Cross-sectional data measures everything at one time point, so you cannot establish whether the exposure preceded the outcome.',points:1},
+// Q20: Match order — Workflow
+{type:'match_order',prompt:'Put the steps in the correct order',text:'Put the data mining workflow steps in the correct order:',labels:['Step 1','Step 2','Step 3','Step 4','Step 5','Step 6'],answers:['Load and preprocess data','Split data into generation and testing sets','Perform EDA and generate hypotheses','Draw causal graph and apply d-separation rules','Run regression analysis guided by the causal graph','Interpret and report results with limitations'],shuffled:['Draw causal graph and apply d-separation rules','Load and preprocess data','Interpret and report results with limitations','Run regression analysis guided by the causal graph','Perform EDA and generate hypotheses','Split data into generation and testing sets'],points:6},
+// Q21: MC — Causal graph before regression
+{type:'mc',prompt:'Select an answer',text:'Why is it important to draw the causal graph BEFORE running regression analysis?',options:['Because the causal graph removes all missing values','Because the causal graph automatically selects the best algorithm','Because regression cannot run without a causal graph','Because the causal graph determines which covariates to adjust for, preventing collider bias and ensuring valid estimates'],correct:3,explanation:'The causal graph determines which variables are confounders (must adjust), mediators (do not adjust for total effect), and colliders (must not adjust).',points:1},
+// Q22: Conclude
+{type:'context',prompt:'',text:'<strong>Well done!</strong><br><br>You\'ve completed the data mining exam, working through a full workflow: from data exploration, causal reasoning, regression analysis, to interpretation.'}
+];
+
+let current=0,score=0,totalPoints=0,startTime=Date.now();
+let studentName='',studentId='';
+const answerLog=[];
+const cont=document.getElementById('btnContinue'),toast=document.getElementById('toast'),qc=document.getElementById('questionContainer');
+questions.forEach(q=>{if(q.points)totalPoints+=q.points});
+
+function startExam(){
+studentName=document.getElementById('studentName').value.trim();
+studentId=document.getElementById('studentId').value.trim();
+if(!studentName||!studentId){alert('Please enter your name and student ID.');return}
+document.getElementById('loginScreen').style.display='none';
+qc.style.display='block';
+startTime=Date.now();
+buildProgress();renderQuestion();
+}
+function logAnswer(qIndex,response,correct,pts){answerLog.push({q:qIndex+1,type:questions[qIndex].type,response:response,correct:correct,points:pts})}
+
+const DEV_MODE=false;
+function buildProgress(){const pb=document.getElementById('progressBar');pb.innerHTML='';questions.forEach((_,i)=>{const d=document.createElement('div');d.className='dot';d.id='dot'+i;if(DEV_MODE)d.onclick=function(){current=i;renderQuestion()};pb.appendChild(d)})}
+function updateProgress(){questions.forEach((_,i)=>{const d=document.getElementById('dot'+i);d.className='dot'+(i<current?' done':'')+(i===current?' current':'')})}
+function showToast(msg){toast.innerHTML=msg;toast.classList.add('visible')}
+function showContinue(){cont.classList.add('visible')}
+function hideContinue(){cont.classList.remove('visible')}
+function renderHint(q){return q.hint?'<div class="hint-box">'+q.hint+'</div>':''}
+
+function renderQuestion(){
+hideContinue();toast.classList.remove('visible');
+updateProgress();
+if(current>=questions.length){showResults();return}
+const q=questions[current];
+document.getElementById('promptBar').textContent=q.prompt||'';
+let html='<div class="question active">';
+switch(q.type){
+case 'context':html+=renderContext(q);break;
+case 'mc':html+=renderMC(q);break;
+case 'multi':html+=renderMulti(q);break;
+case 'binary':html+=renderBinary(q);break;
+case 'match_order':html+=renderMatchOrder(q);break;
+case 'fill_blank_sentence':html+=renderFillSentence(q);break;
+}
+html+='</div>';qc.innerHTML=html;
+if(q.type==='context')showContinue();
+}
+
+function renderContext(q){return '<div class="q-text">'+q.text+'</div>'}
+
+function renderMC(q){
+let h='<div class="q-text">'+q.text+'</div>'+renderHint(q)+'<div class="options">';
+q.options.forEach((o,i)=>{h+='<div class="option" onclick="checkMC('+i+')" id="opt'+i+'">'+o+'</div>'});
+return h+'</div>';
+}
+function checkMC(i){
+const q=questions[current];if(q._answered)return;
+if(i===q.correct){
+q._answered=true;const pts=q._wrong?0:q.points;if(!q._wrong)score+=q.points;
+logAnswer(current,q.options[i],true,pts);
+document.querySelectorAll('.option').forEach((o,j)=>{o.classList.add('disabled');if(j===q.correct)o.classList.add('selected');else o.classList.add('faded')});
+showToast(q.explanation);showContinue();
+}else{
+if(!q._wrong)q._wrong=true;
+document.getElementById('opt'+i).classList.add('wrong');
+setTimeout(()=>document.getElementById('opt'+i).classList.remove('wrong'),600);
+}
+}
+
+function renderMulti(q){
+let h='<div class="q-text">'+q.text+'</div>'+renderHint(q)+'<p style="text-align:center;color:#888;font-size:13px;margin-bottom:12px">SELECT MULTIPLE ANSWERS</p><div class="options-grid">';
+q._sel=new Set();
+q.options.forEach((o,i)=>{h+='<div class="option" onclick="toggleMulti('+i+')" id="mopt'+i+'">'+o+'</div>'});
+h+='</div>';return h;
+}
+function toggleMulti(i){
+const q=questions[current];if(q._done)return;
+const el=document.getElementById('mopt'+i);
+if(q._sel.has(i)){q._sel.delete(i);el.classList.remove('selected')}
+else if(q.correct.includes(i)){
+q._sel.add(i);el.classList.add('selected');
+const sel=Array.from(q._sel).sort().join(',');const cor=[...q.correct].sort().join(',');
+if(sel===cor){
+q._done=true;const mpts=q._wrong?0:q.points;if(!q._wrong)score+=q.points;
+logAnswer(current,'Selected '+q.correct.length+' correct',!q._wrong,mpts);
+document.querySelectorAll('.option').forEach((o,j)=>{o.classList.add('disabled');if(!q.correct.includes(j))o.classList.add('faded')});
+showToast(q.explanation);showContinue();
+}
+}else{
+if(!q._wrong)q._wrong=true;
+el.classList.add('wrong');setTimeout(()=>el.classList.remove('wrong'),600);
+}
+}
+
+function renderBinary(q){
+q._ci=0;q._score=0;q._view=0;
+let h='<div class="q-text">'+q.text+'</div>'+renderHint(q);
+h+='<div class="carousel-wrap"><span class="carousel-arrow disabled" id="binLeft" onclick="navBinary(-1)">\u2039</span><div class="card-stack" id="binaryCard">'+q.cards[0].text+'</div><span class="carousel-arrow'+(q.cards.length>1?'':' disabled')+'" id="binRight" onclick="navBinary(1)">\u203a</span></div>';
+h+='<div class="binary-buttons">';
+q.categories.forEach((c,i)=>{h+='<button class="binary-btn" onclick="checkBinary('+i+')">'+c+'</button>'});
+h+='</div>';return h;
+}
+function navBinary(dir){
+const q=questions[current];if(q._ci>=q.cards.length)return;
+q._view=Math.max(0,Math.min(q.cards.length-1,q._view+dir));
+const card=q.cards[q._view];const cardEl=document.getElementById('binaryCard');
+if(card._answered){cardEl.innerHTML='<span style="color:#1a8a7d">'+card.text+' \u2192 '+q.categories[card.answer]+'</span>'}
+else{cardEl.innerHTML=card.text}
+document.getElementById('binLeft').className='carousel-arrow'+(q._view<=0?' disabled':'');
+document.getElementById('binRight').className='carousel-arrow'+(q._view>=q.cards.length-1?' disabled':'');
+}
+function checkBinary(choice){
+const q=questions[current];if(q._waiting||q._ci>=q.cards.length)return;
+if(q.cards[q._view]._answered)return;
+const card=q.cards[q._view];const btns=document.querySelectorAll('.binary-btn');
+if(choice===card.answer){
+if(!card._wrong)score++;card._answered=true;
+btns[choice].classList.add('correct-btn');q._waiting=true;q._ci++;
+setTimeout(()=>{
+btns.forEach(b=>{b.classList.remove('correct-btn','wrong-btn')});q._waiting=false;
+const nextUn=q.cards.findIndex(c=>!c._answered);
+if(nextUn===-1){
+q._ci=q.cards.length;const wc=q.cards.filter(c=>c._wrong).length;
+logAnswer(current,'Sorted '+q.cards.length+' items',wc===0,score);
+document.getElementById('binaryCard').innerHTML='<strong>ALL DONE!</strong>';
+document.querySelectorAll('.binary-btn').forEach(b=>b.disabled=true);
+document.querySelectorAll('.carousel-arrow').forEach(a=>a.classList.add('disabled'));
+showContinue();
+}else{
+q._ci=nextUn;q._view=nextUn;
+document.getElementById('binaryCard').innerHTML=q.cards[q._view].text;
+document.getElementById('binLeft').className='carousel-arrow'+(q._view<=0?' disabled':'');
+document.getElementById('binRight').className='carousel-arrow'+(q._view>=q.cards.length-1?' disabled':'');
+}
+},800);
+}else{
+if(!card._wrong)card._wrong=true;
+btns[choice].classList.add('wrong-btn');setTimeout(()=>btns[choice].classList.remove('wrong-btn'),600);
+}
+}
+
+function renderMatchOrder(q){
+q._ci=0;q._display=[...q.shuffled];q._wrongs={};
+let h='<div class="q-text">'+q.text+'</div>'+renderHint(q)+'<table class="match-table">';
+q.labels.forEach((l,i)=>{h+='<tr><td class="match-left" id="ml'+i+'">'+l+'</td><td class="match-right" id="mr'+i+'" onclick="checkMatchOrder('+i+')">'+q._display[i]+'</td></tr>'});
+h+='</table>';
+setTimeout(()=>{if(document.getElementById('ml0'))document.getElementById('ml0').classList.add('highlight')},0);
+return h;
+}
+function checkMatchOrder(clicked){
+const q=questions[current];if(q._ci>=q.labels.length)return;
+const clickedEl=document.getElementById('mr'+clicked);
+if(clickedEl.classList.contains('locked'))return;
+const clickedText=clickedEl.textContent;const expected=q.answers[q._ci];
+if(clickedText===expected){
+if(!q._wrongs[q._ci])score++;
+const currentRowEl=document.getElementById('mr'+q._ci);const currentRowText=currentRowEl.textContent;
+if(clicked!==q._ci&&!currentRowEl.classList.contains('locked')){currentRowEl.textContent=clickedText;clickedEl.textContent=currentRowText}
+currentRowEl.textContent=expected;currentRowEl.classList.add('locked');
+document.getElementById('ml'+q._ci).classList.remove('highlight');
+q._ci++;
+if(q._ci>=q.labels.length){const wm=Object.keys(q._wrongs).length;logAnswer(current,'Ordered '+q.labels.length+' steps',wm===0,q.labels.length-wm);showContinue()}
+else{document.getElementById('ml'+q._ci).classList.add('highlight')}
+}else{
+if(!q._wrongs[q._ci])q._wrongs[q._ci]=true;
+clickedEl.style.background='#e74c3c';clickedEl.style.color='#fff';
+setTimeout(()=>{clickedEl.style.background='';clickedEl.style.color=''},600);
+}
+}
+
+function renderFillSentence(q){
+q._bi=0;
+let h='<div class="q-text">'+q.text+'</div>'+renderHint(q);
+q.sentences.forEach((s,si)=>{
+const parts=s.split('_blank_');
+let sentHtml='<p class="q-text" style="margin:12px 0">';
+parts.forEach((p,pi)=>{
+sentHtml+=p;
+let globalIdx=0;for(let ps=0;ps<si;ps++){globalIdx+=q.sentences[ps].split('_blank_').length-1}
+globalIdx+=pi;
+if(pi<parts.length-1){
+const isFirst=(si===0&&pi===0);
+const blankStyle=isFirst?'border-bottom:3px solid #c0392b;padding:0 8px;animation:pulse-blank 1.5s infinite':'border-bottom:2px solid #ccc;padding:0 8px';
+sentHtml+='<strong style="'+blankStyle+'" id="fbblank'+globalIdx+'">\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0</strong>';
+}
+});
+sentHtml+='</p>';h+=sentHtml;
+});
+h+='<div class="options-grid" id="fbOptions" style="margin-top:20px">';
+q.blanks[0].forEach((o,i)=>{h+='<div class="option" onclick="checkFillSentence('+i+')">'+o.text+'</div>'});
+h+='</div>';return h;
+}
+function checkFillSentence(i){
+const q=questions[current];const opts=q.blanks[q._bi];
+if(opts[i].correct){
+if(!q._wrongs||!q._wrongs[q._bi])score++;
+const blank=document.getElementById('fbblank'+q._bi);
+blank.textContent=opts[i].text;
+blank.style.color='#1a8a7d';blank.style.borderBottom='3px solid #1a8a7d';blank.style.animation='none';blank.style.fontWeight='700';
+q._bi++;
+if(q._bi>=q.blanks.length){const ws=q._wrongs?Object.keys(q._wrongs).length:0;logAnswer(current,'Filled '+q.blanks.length+' blanks',ws===0,q.blanks.length-ws);showContinue()}
+else{
+const nextBlank=document.getElementById('fbblank'+q._bi);
+if(nextBlank){nextBlank.style.borderBottom='3px solid #c0392b';nextBlank.style.color='#c0392b';nextBlank.style.animation='pulse-blank 1.5s infinite'}
+const container=document.getElementById('fbOptions');container.innerHTML='';
+q.blanks[q._bi].forEach((o,j)=>{container.innerHTML+='<div class="option" onclick="checkFillSentence('+j+')">'+o.text+'</div>'});
+}
+}else{
+if(!q._wrongs)q._wrongs={};if(!q._wrongs[q._bi])q._wrongs[q._bi]=true;
+const btns=document.querySelectorAll('#fbOptions .option');
+if(btns[i])btns[i].classList.add('wrong');
+setTimeout(()=>{if(btns[i])btns[i].classList.remove('wrong')},600);
+}
+}
+
+function nextQuestion(){current++;renderQuestion()}
+
+function showResults(){
+const elapsed=Math.floor((Date.now()-startTime)/1000);const mins=Math.floor(elapsed/60);const secs=elapsed%60;
+const timeStr=mins+':'+(secs<10?'0':'')+secs;
+document.getElementById('timeValue').textContent=timeStr;
+document.getElementById('scoreValue').textContent=score+' / '+totalPoints;
+const pct=Math.round(score/totalPoints*100);
+document.getElementById('scoreCircle').setAttribute('stroke-dasharray',pct+' 100');
+document.getElementById('timeCircle').setAttribute('stroke-dasharray','100 100');
+document.getElementById('studentLabel').textContent=studentName+' ('+studentId+')';
+document.getElementById('resultsOverlay').classList.add('visible');
+hideContinue();document.getElementById('promptBar').textContent='EXAM COMPLETE';
+window._examMeta={name:studentName,id:studentId,score:score,total:totalPoints,pct:pct,time:timeStr,date:new Date().toLocaleString(),log:answerLog};
+}
+
+function saveHTML(){
+const meta=window._examMeta;
+let html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="exam-record" content=\''+JSON.stringify(meta)+'\'>';
+html+='<title>DM Exam \u2014 '+meta.name+' ('+meta.id+')</title>';
+html+='<style>body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:0}.header{background:#c0392b;color:#fff;padding:16px 24px;text-align:center}.header h2{margin:0 0 4px;font-size:18px}.header p{margin:0;font-size:13px;opacity:0.8}.card{max-width:450px;margin:40px auto;background:#fff;border-radius:12px;padding:40px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.1)}.card h2{margin:0 0 4px}.card h3{color:#c0392b;margin:0 0 24px;font-weight:700}.circles{display:flex;justify-content:center;gap:40px;margin:20px 0 24px}.circle{text-align:center}.circle .ring{width:80px;height:80px;position:relative}.circle svg{transform:rotate(-90deg)}.circle .val{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:700}.circle .lbl{font-size:12px;color:#999;margin-top:6px}.info{font-size:14px;color:#555;margin:8px 0}.info strong{color:#333}</style></head><body>';
+html+='<div class="header"><h2>DM EXAM</h2><p>Type 2 Diabetes Prediction</p></div>';
+html+='<div class="card"><h2>EXAM COMPLETE</h2><h3>TYPE 2 DIABETES PREDICTION</h3>';
+html+='<div class="circles"><div class="circle"><div class="ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="#eee" stroke-width="3"/><circle cx="18" cy="18" r="16" fill="none" stroke="#3498db" stroke-width="3" stroke-dasharray="100 100" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center"/></svg><div class="val">'+meta.time+'</div></div><div class="lbl">TOTAL TIME</div></div>';
+html+='<div class="circle"><div class="ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="#eee" stroke-width="3"/><circle cx="18" cy="18" r="16" fill="none" stroke="#f39c12" stroke-width="3" stroke-dasharray="'+meta.pct+' 100" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center"/></svg><div class="val">'+meta.score+' / '+meta.total+'</div></div><div class="lbl">SCORE</div></div></div>';
+html+='<p class="info"><strong>Name:</strong> '+meta.name+'</p>';
+html+='<p class="info"><strong>Student ID:</strong> '+meta.id+'</p>';
+html+='<p class="info"><strong>Date:</strong> '+meta.date+'</p>';
+html+='</div></body></html>';
+const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);a.download='DM_Exam_'+meta.id+'_'+meta.name.replace(/\s+/g,'_')+'.html';a.click();
+}
+
+buildProgress();
+</script>
+</body>
+</html>
